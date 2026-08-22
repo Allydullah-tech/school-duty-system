@@ -1,0 +1,4 @@
+ALTER TABLE swap_requests 
+MODIFY COLUMN target_teacher_id INT NULL DEFAULT NULL;
+
+ALTER TABLE task_submissions ADD COLUMN IF NOT EXISTS submission_file VARCHAR(500) DEFAULT NULL;

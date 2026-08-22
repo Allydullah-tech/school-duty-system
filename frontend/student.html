@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Student Dashboard — SchoolDuty</title>
+    <link rel="stylesheet" href="assets/css/style.css" />
+</head>
+
+<body>
+    <div class="dashboard">
+        <aside class="sidebar sidebar-student">
+            <div class="sidebar-header">
+                <h2>SchoolDuty</h2>
+                <p>Student Portal</p>
+            </div>
+            <div class="sidebar-user">
+                <div class="name" id="sb-name"></div>
+                <span class="role-badge">Student</span>
+                <div style="font-size:.72rem;color:var(--text3);margin-top:3px" id="sb-reg"></div>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="#" class="active" onclick="showTab('tasks',this)">📚 Tasks</a>
+                <a href="#" onclick="showTab('my-submissions',this)">📤 My Submissions</a>
+                <a href="timetable.html">📋 Exam Timetable ↗</a>
+                <a href="class-timetable.html">🏫 Class Timetables ↗</a>
+                <a href="#" onclick="showTab('profile',this)">👤 My Profile</a>
+            </nav>
+            <div class="sidebar-footer"><button onclick="logout()">Sign Out</button></div>
+        </aside>
+
+        <main class="main-content">
+            <div class="page-header">
+                <h1>Student Dashboard</h1>
+                <p id="welcome-p"></p>
+            </div>
+            <div id="msg-box"></div>
+
+            <div id="tab-tasks">
+                <div class="stats-grid" style="max-width:600px;margin-bottom:20px">
+                    <div class="stat-card border-blue">
+                        <div class="stat-num" id="s-total">—</div>
+                        <div class="stat-label">Total Tasks</div>
+                    </div>
+                    <div class="stat-card border-yellow">
+                        <div class="stat-num" id="s-pending-tasks">—</div>
+                        <div class="stat-label">Pending</div>
+                    </div>
+                    <div class="stat-card border-green">
+                        <div class="stat-num" id="s-submitted">—</div>
+                        <div class="stat-label">Submitted</div>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-header">
+                        <h3>📚 Tasks from Teachers</h3>
+                        <p>Submit your work to the corresponding teacher</p>
+                    </div>
+                    <div class="card-body" id="tasks-container">
+                        <div class="loading">Loading tasks…</div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="tab-my-submissions" style="display:none">
+                <div class="card">
+                    <div class="card-header">
+                        <h3>📤 My Submissions</h3>
+                        <p>Your submitted work and grades</p>
+                    </div>
+                    <div class="item-list" id="submissions-container"></div>
+                </div>
+            </div>
+
+            <div id="tab-profile" style="display:none">
+                <div class="card form-card" style="max-width:500px">
+                    <div class="card-header">
+                        <h3>My Profile</h3>
+                    </div>
+                    <div class="card-body">
+                        <div style="margin-bottom:1.5rem;padding:1rem;background:rgba(52,211,153,.08);border-radius:10px">
+                            <p><strong>Name:</strong> <span id="profile-name"></span></p>
+                            <p><strong>Role:</strong> Student</p>
+                            <p><strong>Registration:</strong> <span id="profile-reg"></span></p>
+                        </div>
+                        <form onsubmit="changePassword(event)">
+                            <div class="form-group"><label>Current Password</label><input type="password" id="current-password" required/></div>
+                            <div class="form-group"><label>New Password (min 6)</label><input type="password" id="new-password" required minlength="6" /></div>
+                            <div class="form-group"><label>Confirm Password</label><input type="password" id="confirm-password" required/></div>
+                            <button type="submit" class="btn btn-primary">Change Password</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div id="submitModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>📤 Submit Your Work</h3><button class="modal-close" onclick="closeModal('submitModal')">&times;</button></div>
+            <div class="modal-body">
+                <div id="submit-task-info" style="background:var(--bg3);padding:12px;border-radius:8px;margin-bottom:14px;font-size:.82rem;color:var(--text2)">
+                    <strong>Task:</strong> <span id="submit-task-title"></span><br/>
+                    <strong>Subject:</strong> <span id="submit-task-subject"></span><br/>
+                    <strong>Teacher:</strong> <span id="submit-task-teacher"></span><br/>
+                    <strong>Due:</strong> <span id="submit-task-due"></span>
+                </div>
+
+                <div class="form-group">
+                    <label>Upload Your Work (Word, PDF, etc.)</label>
+                    <input type="file" id="submission-file" accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png,.zip,.xlsx,.pptx" />
+                    <div style="font-size:.7rem;color:var(--text3);margin-top:5px">
+                        Accepted: PDF, DOC, DOCX, TXT, JPG, PNG, ZIP, XLSX, PPTX — Max 15MB
+                    </div>
+                    <div id="file-selected-name" style="font-size:.78rem;color:var(--green);margin-top:6px;display:none"></div>
+                </div>
+
+                <div class="form-group">
+                    <label>Additional Notes (optional)</label>
+                    <textarea id="submission-text" rows="3" placeholder="Add any notes about your submission…"></textarea>
+                </div>
+
+                <div id="upload-progress-wrap" style="display:none;margin-top:10px">
+                    <div style="height:6px;background:var(--bg3);border-radius:4px;overflow:hidden">
+                        <div id="upload-progress-bar" style="height:100%;width:0%;background:linear-gradient(135deg,var(--accent),#e8941a);transition:width .2s"></div>
+                    </div>
+                    <div id="upload-progress-text" style="font-size:.72rem;color:var(--text2);margin-top:4px">Uploading…</div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('submitModal')">Cancel</button>
+                <button class="btn btn-success" id="submit-work-btn" style="width:auto" onclick="submitWork()">Submit Assignment</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="assets/js/api.js"></script>
+    <script>
+        var user = requireAuth('student');
+        document.getElementById('sb-name').textContent = user.full_name;
+        document.getElementById('sb-reg').textContent = 'Reg: ' + (user.reg_number || 'N/A');
+        document.getElementById('welcome-p').textContent = 'Welcome, ' + user.full_name;
+
+        var allTasks = [],
+            mySubmissions = [],
+            currentTaskId = null;
+
+        function showTab(name, el) {
+            ['tasks', 'my-submissions', 'profile'].forEach(function(t) {
+                var x = document.getElementById('tab-' + t);
+                if (x) x.style.display = t === name ? '' : 'none';
+            });
+            document.querySelectorAll('.sidebar-nav a').forEach(function(a) {
+                a.classList.remove('active');
+            });
+            if (el) el.classList.add('active');
+            if (name === 'tasks') loadTasks();
+            if (name === 'my-submissions') loadMySubmissions();
+            if (name === 'profile') showProfile();
+        }
+
+        async function loadTasks() {
+            var container = document.getElementById('tasks-container');
+            container.innerHTML = '<div class="loading">Loading…</div>';
+            try {
+                allTasks = await apiCall('/tasks/get_all.php');
+                mySubmissions = await apiCall('/tasks/my_submissions.php').catch(function() {
+                    return [];
+                });
+                var submittedIds = mySubmissions.map(function(s) {
+                    return s.task_id;
+                });
+                document.getElementById('s-total').textContent = allTasks.length;
+                document.getElementById('s-pending-tasks').textContent = allTasks.filter(function(t) {
+                    return !submittedIds.includes(t.id);
+                }).length;
+                document.getElementById('s-submitted').textContent = submittedIds.length;
+                if (!allTasks.length) {
+                    container.innerHTML = '<div class="empty-state">No tasks posted yet</div>';
+                    return;
+                }
+                container.innerHTML = allTasks.map(function(t) {
+                    var submitted = submittedIds.includes(t.id);
+                    var sub = submitted ? mySubmissions.find(function(s) {
+                        return s.task_id === t.id;
+                    }) : null;
+                    return '<div class="task-card">' +
+                        '<div class="task-title">' + escapeHtml(t.title) + '</div>' +
+                        '<div class="task-meta">📚 ' + escapeHtml(t.subject || 'General') + ' · 👩‍🏫 ' + escapeHtml(t.teacher_name) + ' · 📅 Due: ' + fmtDate(t.due_date) + '</div>' +
+                        '<div class="task-desc">' + escapeHtml(t.description || 'No description provided') + '</div>' +
+                        (submitted ?
+                            '<div class="already-submitted" style="margin-top:10px">' +
+                            '<span class="submission-status">✅ Submitted</span>' +
+                            (sub && sub.grade ? '&nbsp;&nbsp;<span class="badge badge-graded">Grade: ' + escapeHtml(sub.grade) + '</span>' : '&nbsp;&nbsp;<span class="badge badge-pending">Awaiting grade</span>') +
+                            '</div>' :
+                            '<button class="btn-submit" onclick="openSubmit(' + t.id + ',\'' + escapeHtml(t.title).replace(/'/g, "\\'") + '\',\'' + escapeHtml(t.subject || '').replace(/'/g, "\\'") + '\',\'' + escapeHtml(t.teacher_name).replace(/'/g, "\\'") + '\',\'' + escapeHtml(t.due_date || '') + '\')">📤 Submit Work</button>'
+                        ) +
+                        '</div>';
+                }).join('');
+            } catch (e) {
+                container.innerHTML = '<div class="empty-state">Error: ' + escapeHtml(e.message) + '</div>';
+            }
+        }
+
+        async function loadMySubmissions() {
+            var container = document.getElementById('submissions-container');
+            try {
+                mySubmissions = await apiCall('/tasks/my_submissions.php');
+                if (!mySubmissions.length) {
+                    container.innerHTML = '<div class="empty-state">No submissions yet</div>';
+                    return;
+                }
+                container.innerHTML = mySubmissions.map(function(s) {
+                    var fileLine = s.submission_file ?
+                        '<div class="item-meta" style="margin-top:4px;color:var(--accent)">📎 File submitted</div>' :
+                        '';
+                    return '<div class="item">' +
+                        '<div class="item-info">' +
+                        '<div class="item-title">' + escapeHtml(s.task_title) + '</div>' +
+                        '<div class="item-meta">📚 ' + escapeHtml(s.subject || 'General') + ' · 👩‍🏫 Teacher: ' + escapeHtml(s.teacher_name) + ' · Submitted: ' + fmtDateTime(s.submission_date) + '</div>' +
+                        (s.submission_text ? '<div class="item-meta" style="margin-top:4px;font-style:italic">' + escapeHtml(s.submission_text.substring(0, 120)) + '…</div>' : '') +
+                        fileLine +
+                        (s.grade_comment && s.grade ? '<div class="item-meta" style="margin-top:4px;color:var(--green)">Feedback: ' + escapeHtml(s.grade_comment) + '</div>' : '') +
+                        '</div>' +
+                        '<div class="item-actions">' +
+                        (s.grade ?
+                            '<span class="badge badge-graded">Grade: ' + escapeHtml(s.grade) + '</span>' :
+                            '<span class="badge badge-submitted">Pending Review</span>') +
+                        '</div>' +
+                        '</div>';
+                }).join('');
+            } catch (e) {
+                showAlert('msg-box', e.message);
+            }
+        }
+
+        function openSubmit(taskId, title, subject, teacher, dueDate) {
+            currentTaskId = taskId;
+            document.getElementById('submit-task-title').textContent = title;
+            document.getElementById('submit-task-subject').textContent = subject || 'Not specified';
+            document.getElementById('submit-task-teacher').textContent = teacher;
+            document.getElementById('submit-task-due').textContent = dueDate ? fmtDate(dueDate) : 'No due date';
+            document.getElementById('submission-text').value = '';
+            document.getElementById('submission-file').value = '';
+            document.getElementById('file-selected-name').style.display = 'none';
+            document.getElementById('upload-progress-wrap').style.display = 'none';
+            document.getElementById('upload-progress-bar').style.width = '0%';
+            document.getElementById('submitModal').classList.add('active');
+        }
+
+        document.getElementById('submission-file').addEventListener('change', function() {
+            var nameEl = document.getElementById('file-selected-name');
+            if (this.files && this.files[0]) {
+                var f = this.files[0];
+                var sizeKB = (f.size / 1024).toFixed(0);
+                var sizeLabel = sizeKB > 1024 ? (f.size / (1024 * 1024)).toFixed(1) + ' MB' : sizeKB + ' KB';
+                nameEl.textContent = '📎 ' + f.name + ' (' + sizeLabel + ')';
+                nameEl.style.display = 'block';
+            } else {
+                nameEl.style.display = 'none';
+            }
+        });
+
+        async function submitWork() {
+            var fileInput = document.getElementById('submission-file');
+            var text = document.getElementById('submission-text').value.trim();
+            var file = fileInput.files && fileInput.files[0] ? fileInput.files[0] : null;
+
+            if (!file && !text) {
+                showAlert('msg-box', 'Please upload a file or add a note');
+                return;
+            }
+
+            var btn = document.getElementById('submit-work-btn');
+            var originalText = btn.textContent;
+            btn.disabled = true;
+            btn.textContent = 'Submitting…';
+
+            var formData = new FormData();
+            formData.append('task_id', currentTaskId);
+            formData.append('submission_text', text);
+            if (file) formData.append('submission_file', file);
+
+            var progressWrap = document.getElementById('upload-progress-wrap');
+            var progressBar = document.getElementById('upload-progress-bar');
+            var progressText = document.getElementById('upload-progress-text');
+            if (file) progressWrap.style.display = 'block';
+
+            var token = localStorage.getItem('sds_token');
+            var BASE = '/school-duty-system/backend';
+
+            var xhr = new XMLHttpRequest();
+            xhr.open('POST', BASE + '/tasks/submit.php', true);
+            xhr.setRequestHeader('Authorization', 'Bearer ' + token);
+
+            xhr.upload.onprogress = function(e) {
+                if (e.lengthComputable) {
+                    var pct = Math.round((e.loaded / e.total) * 100);
+                    progressBar.style.width = pct + '%';
+                    progressText.textContent = 'Uploading… ' + pct + '%';
+                }
+            };
+
+            xhr.onload = function() {
+                btn.disabled = false;
+                btn.textContent = originalText;
+                var data;
+                try {
+                    data = JSON.parse(xhr.responseText);
+                } catch (e) {
+                    showAlert('msg-box', 'Server error: invalid response');
+                    return;
+                }
+
+                if (xhr.status >= 200 && xhr.status < 300) {
+                    showAlert('msg-box', '✅ Submitted successfully!', 'success');
+                    closeModal('submitModal');
+                    loadTasks();
+                } else {
+                    showAlert('msg-box', data.error || 'Submission failed');
+                }
+            };
+
+            xhr.onerror = function() {
+                btn.disabled = false;
+                btn.textContent = originalText;
+                showAlert('msg-box', 'Network error — please try again');
+            };
+
+            xhr.send(formData);
+        }
+
+        function showProfile() {
+            document.getElementById('profile-name').textContent = user.full_name;
+            document.getElementById('profile-reg').textContent = user.reg_number || '—';
+        }
+
+        async function changePassword(e) {
+            e.preventDefault();
+            var np = document.getElementById('new-password').value,
+                cp = document.getElementById('confirm-password').value;
+            if (np !== cp) {
+                showAlert('msg-box', 'Passwords do not match');
+                return;
+            }
+            try {
+                await apiCall('/auth/change_password.php', 'POST', {
+                    current_password: document.getElementById('current-password').value,
+                    new_password: np
+                });
+                showAlert('msg-box', 'Password changed!', 'success');
+                e.target.reset();
+            } catch (err) {
+                showAlert('msg-box', err.message);
+            }
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).classList.remove('active');
+        }
+        window.onclick = function(e) {
+            if (e.target.classList.contains('modal')) e.target.classList.remove('active');
+        };
+
+        loadTasks();
+    </script>
+</body>
+
+</html>

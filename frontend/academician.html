@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Academician Dashboard — SchoolDuty</title>
+  <link rel="stylesheet" href="assets/css/style.css"/>
+  <style>
+    .term-header-bar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:18px;}
+    .term-summary{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px;}
+    .term-stat{background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:14px 16px;text-align:center;}
+    .term-stat .n{font-family:'DM Mono',monospace;font-size:1.5rem;color:var(--accent);}
+    .term-stat .l{font-size:.68rem;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-top:3px;}
+    .generate-box{background:linear-gradient(135deg,rgba(245,166,35,.08),rgba(96,165,250,.06));border:1px solid rgba(245,166,35,.2);border-radius:14px;padding:22px 24px;margin-bottom:20px;}
+    .generate-box h4{font-size:.95rem;font-weight:600;color:var(--accent);margin-bottom:6px;}
+    .generate-box p{font-size:.78rem;color:var(--text2);margin-bottom:16px;line-height:1.6;}
+    .gen-controls{display:grid;grid-template-columns:1fr 1fr auto;gap:10px;align-items:end;}
+    .week-band{background:var(--bg2);border:1px solid var(--border);border-radius:10px;margin-bottom:8px;overflow:hidden;}
+    .week-band-header{display:grid;grid-template-columns:80px 1fr auto auto;gap:10px;align-items:center;padding:10px 16px;cursor:pointer;transition:background .15s;}
+    .week-band-header:hover{background:var(--bg3);}
+    .week-num{font-family:'DM Mono',monospace;font-size:.72rem;color:var(--accent);font-weight:600;}
+    .week-dates{font-size:.75rem;color:var(--text2);}
+    .week-teacher{font-size:.8rem;color:var(--blue);font-weight:600;}
+    .week-teacher.swapped{color:var(--accent);}
+    .week-actions{display:flex;gap:6px;justify-content:flex-end;}
+    .week-duties-body{padding:0 16px 12px;display:none;border-top:1px solid var(--border);}
+    .week-duties-body.open{display:block;}
+    .swap-request-card{background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:10px;}
+    .swap-req-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
+    .swap-req-teacher{font-weight:600;color:var(--text);font-size:.88rem;}
+    .swap-req-meta{font-size:.72rem;color:var(--text2);margin-bottom:10px;}
+    .swap-reassign-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
+    .teacher-load-bar{margin-bottom:6px;}
+    .teacher-load-bar .tl-name{font-size:.75rem;color:var(--text2);margin-bottom:3px;display:flex;justify-content:space-between;}
+    .tl-bar{height:5px;background:var(--bg3);border-radius:3px;overflow:hidden;}
+    .tl-fill{height:100%;background:linear-gradient(90deg,var(--green),var(--accent));border-radius:3px;transition:width .4s;}
+    /* roster table */
+    .roster-wrap{overflow-x:auto;}
+    .roster-tbl{min-width:960px;border-collapse:collapse;width:100%;font-size:.78rem;}
+    .roster-tbl th{background:var(--navy);color:#fff;padding:8px 10px;text-align:center;border:1px solid var(--border2);}
+    .roster-tbl th.grp{background:var(--navy2);font-size:.68rem;}
+    .roster-tbl td{padding:8px 10px;text-align:center;border:1px solid var(--border);background:var(--bg2);}
+    .roster-tbl td.lbl{text-align:left;font-weight:600;color:var(--text);background:var(--bg3);}
+    .roster-tbl tr:hover td{background:var(--bg3);}
+    /* teacher tags in week */
+    .teacher-tag{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;background:rgba(96,165,250,.12);border-radius:12px;font-size:.72rem;color:var(--blue);margin:2px;}
+    .teacher-tag.swapped{background:rgba(245,166,35,.12);color:var(--accent);}
+  </style>
+</head>
+<body>
+<div class="dashboard">
+  <aside class="sidebar sidebar-academician">
+    <div class="sidebar-header"><h2>SchoolDuty</h2><p>Academician Portal</p></div>
+    <div class="sidebar-user"><div class="name" id="sb-name"></div><span class="role-badge">Academician</span></div>
+    <nav class="sidebar-nav">
+      <a href="#" class="active" onclick="showTab('overview',this)">📊 Overview</a>
+      <a href="#" onclick="showTab('term-duties',this)">🗓️ Term Duties</a>
+      <a href="#" onclick="showTab('swap-requests',this)">🔄 Swap Requests</a>
+      <a href="#" onclick="showTab('timetable',this)" style="display:none">📅 Class Timetable</a>
+      <a href="timetable.html">📋 Exam Timetable ↗</a>
+      <a href="class-timetable.html">🏫 Class Timetables ↗</a>
+      <a href="#" onclick="showTab('special',this)">⭐ Special Tasks</a>
+      <a href="#" onclick="showTab('duties',this)">📋 All Duties</a>
+      <a href="#" onclick="showTab('roster',this)">📖 Roster Book</a>
+      <a href="#" onclick="showTab('profile',this)">👤 My Profile</a>
+    </nav>
+    <div class="sidebar-footer"><button onclick="logout()">Sign Out</button></div>
+  </aside>
+
+  <main class="main-content">
+    <div class="page-header"><h1>Academician Dashboard</h1><p id="welcome-p"></p></div>
+    <div id="msg-box"></div>
+
+    <!-- OVERVIEW -->
+    <div id="tab-overview">
+      <div class="stats-grid">
+        <div class="stat-card border-green"><div class="stat-num" id="s-teachers">—</div><div class="stat-label">Teachers</div></div>
+        <div class="stat-card border-yellow"><div class="stat-num" id="s-term-weeks">—</div><div class="stat-label">Term Weeks</div></div>
+        <div class="stat-card border-blue"><div class="stat-num" id="s-swaps">—</div><div class="stat-label">Pending Swaps</div></div>
+        <div class="stat-card border-purple"><div class="stat-num" id="s-special">—</div><div class="stat-label">Special Tasks</div></div>
+      </div>
+      <div class="card">
+        <div class="card-header"><h3>📊 Teacher Duty Distribution</h3><p>Equal load across the term</p></div>
+        <div class="card-body" id="distribution-view"></div>
+      </div>
+    </div>
+
+    <!-- TERM DUTIES -->
+    <div id="tab-term-duties" style="display:none">
+      <div class="generate-box">
+        <h4>🗓️ Auto-Generate Term Duty Roster</h4>
+        <p>One click assigns one teacher per week for 3 months, distributed equally. You can then edit any week to add more teachers or replace the assigned teacher.</p>
+        <div class="gen-controls">
+          <div class="form-group" style="margin:0">
+            <label>Term Start Date</label>
+            <input type="date" id="term-start"/>
+          </div>
+          <div class="form-group" style="margin:0">
+            <label>Duty Title</label>
+            <input type="text" id="term-duty-title" placeholder="e.g., Morning Assembly Duty"/>
+          </div>
+          <button class="btn btn-success" onclick="generateTermDuties()" id="gen-btn">⚡ Generate</button>
+        </div>
+      </div>
+      <div class="term-header-bar">
+        <h3 style="font-family:'Playfair Display',serif;color:var(--text)">Term Schedule</h3>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-secondary btn-sm" onclick="expandAll()">Expand All</button>
+          <button class="btn btn-secondary btn-sm" onclick="collapseAll()">Collapse All</button>
+        </div>
+      </div>
+      <div class="term-summary" id="term-summary"></div>
+      <div id="term-schedule-list"><div class="empty-state">No term schedule yet. Generate one above.</div></div>
+    </div>
+
+    <!-- SWAP REQUESTS -->
+    <div id="tab-swap-requests" style="display:none">
+      <div class="card">
+        <div class="card-header">
+          <div><h3>🔄 Swap Requests from Teachers</h3><p>Review and reassign duties</p></div>
+          <button class="btn btn-secondary btn-sm" onclick="loadSwapRequests()">↻ Refresh</button>
+        </div>
+        <div class="card-body" id="swap-requests-list"><div class="loading">Loading…</div></div>
+      </div>
+    </div>
+
+    <!-- TIMETABLE -->
+    <div id="tab-timetable" style="display:none">
+      <div class="card" style="margin-bottom:20px">
+        <div class="card-header">
+          <div><h3>➕ Add Timetable Entry</h3></div>
+          <button class="btn btn-secondary btn-sm" onclick="toggleTimetableForm()">Toggle Form</button>
+        </div>
+        <div class="card-body" id="timetable-form-wrap">
+          <form onsubmit="addTimetable(event)">
+            <div class="form-row">
+              <div class="form-group"><label>Day</label>
+                <select id="tt-day" required>
+                  <option value="">Select day…</option>
+                  <option>Monday</option><option>Tuesday</option><option>Wednesday</option>
+                  <option>Thursday</option><option>Friday</option><option>Saturday</option>
+                </select>
+              </div>
+              <div class="form-group"><label>Time Slot</label><input type="text" id="tt-time" placeholder="e.g., 08:00–09:00" required/></div>
+            </div>
+            <div class="form-row">
+              <div class="form-group"><label>Subject</label><input type="text" id="tt-subject" required/></div>
+              <div class="form-group"><label>Class Name</label><input type="text" id="tt-class" placeholder="e.g., Form 4A" required/></div>
+            </div>
+            <div class="form-row">
+              <div class="form-group"><label>Teacher</label><select id="tt-teacher" required><option value="">Select teacher…</option></select></div>
+              <div class="form-group"><label>Room (Optional)</label><input type="text" id="tt-room" placeholder="e.g., Room 12"/></div>
+            </div>
+            <button type="submit" class="btn btn-primary" style="max-width:200px">Add Entry</button>
+          </form>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header"><h3>📅 School Timetable</h3></div>
+        <div class="card-body"><div id="timetable-view"></div></div>
+      </div>
+    </div>
+
+    <!-- SPECIAL TASKS -->
+    <div id="tab-special" style="display:none">
+      <div class="card form-card" style="max-width:560px;margin-bottom:20px">
+        <div class="card-header"><h3>Assign Special Task</h3></div>
+        <div class="card-body">
+          <form onsubmit="createSpecial(event)">
+            <div class="form-group"><label>Title *</label><input type="text" id="sp-title" required/></div>
+            <div class="form-group"><label>Description</label><textarea id="sp-desc" rows="3"></textarea></div>
+            <div class="form-row">
+              <div class="form-group"><label>Assign To</label><select id="sp-teacher" required><option value="">Select teacher…</option></select></div>
+              <div class="form-group"><label>Priority</label>
+                <select id="sp-priority"><option value="medium">Medium</option><option value="low">Low</option><option value="high">High</option></select>
+              </div>
+            </div>
+            <div class="form-group"><label>Due Date</label><input type="date" id="sp-due"/></div>
+            <button type="submit" class="btn btn-primary">Assign Task</button>
+          </form>
+        </div>
+      </div>
+      <div class="card"><div class="card-header"><h3>All Special Tasks</h3></div><div class="item-list" id="special-list"></div></div>
+    </div>
+
+    <!-- ALL DUTIES -->
+    <div id="tab-duties" style="display:none">
+      <div class="card form-card" style="max-width:560px;margin-bottom:20px">
+        <div class="card-header"><h3>Assign Individual Duty</h3></div>
+        <div class="card-body">
+          <form onsubmit="createDuty(event)">
+            <div class="form-group"><label>Title *</label><input type="text" id="d-title" required/></div>
+            <div class="form-group"><label>Description</label><textarea id="d-desc" rows="2"></textarea></div>
+            <div class="form-row">
+              <div class="form-group"><label>Assign To</label><select id="d-teacher" required><option value="">Select teacher…</option></select></div>
+              <div class="form-group"><label>Duty Date</label><input type="date" id="d-date" required/></div>
+            </div>
+            <div class="form-row">
+              <div class="form-group"><label>Time</label><input type="text" id="d-time" placeholder="e.g., 07:00 AM"/></div>
+              <div class="form-group"><label>Location</label><input type="text" id="d-location"/></div>
+            </div>
+            <button type="submit" class="btn btn-primary">Assign Duty</button>
+          </form>
+        </div>
+      </div>
+      <div class="card"><div class="card-header"><h3>All Assigned Duties</h3></div><div class="item-list" id="duties-list"></div></div>
+    </div>
+
+    <!-- ROSTER BOOK — table view -->
+    <div id="tab-roster" style="display:none">
+      <div class="card">
+        <div class="card-header">
+          <div><h3>📖 Teacher Roster Book</h3><p>Daily attendance records submitted by teachers</p></div>
+          <button class="btn btn-secondary btn-sm" onclick="loadRoster()">↻ Refresh</button>
+        </div>
+        <div class="roster-wrap" id="roster-container">
+          <div class="loading">Loading…</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PROFILE -->
+    <div id="tab-profile" style="display:none">
+      <div class="card form-card" style="max-width:500px">
+        <div class="card-header"><h3>My Profile</h3></div>
+        <div class="card-body">
+          <div style="margin-bottom:1.5rem;padding:1rem;background:rgba(245,166,35,.08);border-radius:10px">
+            <p><strong>Name:</strong> <span id="profile-name"></span></p>
+            <p><strong>Role:</strong> <span id="profile-role"></span></p>
+            <p><strong>Email:</strong> <span id="profile-email"></span></p>
+          </div>
+          <form onsubmit="changePassword(event)">
+            <div class="form-group"><label>Current Password</label><input type="password" id="current-password" required/></div>
+            <div class="form-group"><label>New Password (min 6)</label><input type="password" id="new-password" required minlength="6"/></div>
+            <div class="form-group"><label>Confirm Password</label><input type="password" id="confirm-password" required/></div>
+            <button type="submit" class="btn btn-primary">Change Password</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Edit Week Modal — supports replace OR add teacher -->
+<div id="editWeekModal" class="modal">
+  <div class="modal-content" style="max-width:560px">
+    <div class="modal-header"><h3>✏️ Edit Week Duty</h3><button class="modal-close" onclick="closeModal('editWeekModal')">&times;</button></div>
+    <div class="modal-body">
+      <p id="edit-week-info" style="color:var(--text2);font-size:.82rem;margin-bottom:14px;background:var(--bg3);padding:10px;border-radius:8px"></p>
+      <div id="edit-week-current-teachers" style="margin-bottom:14px"></div>
+      <div style="background:rgba(245,166,35,.06);border:1px solid rgba(245,166,35,.15);border-radius:9px;padding:14px;margin-bottom:14px">
+        <div style="font-size:.8rem;font-weight:600;color:var(--accent);margin-bottom:10px">Select Teacher Action</div>
+        <div style="display:flex;gap:10px;margin-bottom:12px">
+          <label style="display:flex;align-items:center;gap:6px;font-size:.82rem;cursor:pointer">
+            <input type="radio" name="edit-action" id="action-replace" value="replace" checked/> Replace existing teacher
+          </label>
+          <label style="display:flex;align-items:center;gap:6px;font-size:.82rem;cursor:pointer">
+            <input type="radio" name="edit-action" id="action-add" value="add"/> Add another teacher
+          </label>
+        </div>
+        <div class="form-group">
+          <label>Teacher</label>
+          <select id="edit-week-teacher"><option value="">Select teacher…</option></select>
+        </div>
+        <div class="form-group">
+          <label>Note / Reason</label>
+          <textarea id="edit-week-reason" rows="2" placeholder="Optional note…"></textarea>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('editWeekModal')">Cancel</button>
+      <button class="btn btn-primary" style="width:auto" onclick="saveWeekEdit()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Swap Respond Modal -->
+<div id="respondSwapModal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header"><h3>🔄 Handle Swap Request</h3><button class="modal-close" onclick="closeModal('respondSwapModal')">&times;</button></div>
+    <div class="modal-body">
+      <div id="swap-modal-info" style="background:var(--bg3);padding:14px;border-radius:9px;margin-bottom:16px;font-size:.82rem;color:var(--text2)"></div>
+      <div class="form-group"><label>Reassign duty week to</label><select id="swap-reassign-teacher"><option value="">Select new teacher…</option></select></div>
+      <div class="form-group"><label>Comment / Note</label><textarea id="swap-comment" rows="2" placeholder="Optional note…"></textarea></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('respondSwapModal')">Cancel</button>
+      <button class="btn btn-danger" style="width:auto" onclick="handleSwap('rejected')">Reject</button>
+      <button class="btn btn-success" style="width:auto" onclick="handleSwap('approved')">Approve &amp; Reassign</button>
+    </div>
+  </div>
+</div>
+
+<script src="assets/js/api.js"></script>
+<script>
+var user = requireAuth('academician');
+document.getElementById('sb-name').textContent = user.full_name;
+document.getElementById('welcome-p').textContent = 'Welcome, ' + user.full_name;
+
+var teachers=[], termSchedule=[], swapRequests=[], specialTasks=[], duties=[];
+var editingWeekId=null, respondingSwapId=null;
+
+function showTab(name, el) {
+  var tabs=['overview','term-duties','swap-requests','timetable','special','duties','roster','profile'];
+  tabs.forEach(function(t){ var x=document.getElementById('tab-'+t); if(x) x.style.display=t===name?'':'none'; });
+  document.querySelectorAll('.sidebar-nav a').forEach(function(a){a.classList.remove('active');});
+  if(el) el.classList.add('active');
+  if(name==='overview') loadOverview();
+  if(name==='term-duties') loadTermSchedule();
+  if(name==='swap-requests') loadSwapRequests();
+  if(name==='timetable'){ loadTeachers(); loadTimetable(); }
+  if(name==='special'){ loadTeachers(); loadSpecial(); }
+  if(name==='duties'){ loadTeachers(); loadDuties(); }
+  if(name==='roster') loadRoster();
+  if(name==='profile') showProfile();
+}
+
+// ── OVERVIEW ──
+async function loadOverview() {
+  try {
+    var res = await Promise.all([
+      apiCall('/users/get_teachers.php'),
+      apiCall('/swap/get.php').catch(function(){return[];}),
+      apiCall('/special_tasks/get_all.php').catch(function(){return[];}),
+    ]);
+    teachers = res[0]; swapRequests = res[1]; specialTasks = res[2];
+    var termData = await apiCall('/term_duties/get_all.php').catch(function(){return[];});
+    var weekNums = {};
+    termData.forEach(function(d){ weekNums[d.week_number]=1; });
+    var weeks = Object.keys(weekNums).length;
+    document.getElementById('s-teachers').textContent = teachers.length;
+    document.getElementById('s-term-weeks').textContent = weeks;
+    document.getElementById('s-swaps').textContent = swapRequests.filter(function(s){return s.status==='pending';}).length;
+    document.getElementById('s-special').textContent = specialTasks.length;
+    renderDistribution(teachers, termData);
+  } catch(e){ showAlert('msg-box',e.message); }
+}
+
+function renderDistribution(teachers, termData) {
+  var div = document.getElementById('distribution-view');
+  if(!teachers.length){ div.innerHTML='<div class="empty-state">No teachers found</div>'; return; }
+  var counts = {};
+  teachers.forEach(function(t){ counts[t.id]=0; });
+  termData.forEach(function(d){ if(counts[d.assigned_to]!==undefined) counts[d.assigned_to]++; });
+  var max = Math.max(1, Math.max.apply(null, Object.values(counts)));
+  div.innerHTML = teachers.map(function(t){
+    var c = counts[t.id]||0;
+    return '<div class="teacher-load-bar">'+
+      '<div class="tl-name"><span>'+escapeHtml(t.full_name)+'</span><span style="color:var(--accent)">'+c+' weeks</span></div>'+
+      '<div class="tl-bar"><div class="tl-fill" style="width:'+((c/max)*100)+'%"></div></div>'+
+    '</div>';
+  }).join('');
+}
+
+// ── TERM DUTIES ──
+async function generateTermDuties() {
+  var startDate = document.getElementById('term-start').value;
+  var title = document.getElementById('term-duty-title').value.trim();
+  if(!startDate){ showAlert('msg-box','Please select a term start date'); return; }
+  if(!title){ showAlert('msg-box','Please enter a duty title'); return; }
+  if(!teachers.length) teachers = await apiCall('/users/get_teachers.php');
+  if(!teachers.length){ showAlert('msg-box','No teachers found. Add teachers first.'); return; }
+  if(!confirm('Generate 3-month term duty roster starting '+startDate+'?\nThis will replace any existing schedule for this term.')) return;
+  var btn = document.getElementById('gen-btn');
+  btn.textContent = 'Generating…'; btn.disabled = true;
+  try {
+    var start = new Date(startDate);
+    var dow = start.getDay();
+    if(dow !== 1){ var diff = dow===0 ? 1 : (8-dow); start.setDate(start.getDate()+diff); }
+    var endDate = new Date(start); endDate.setMonth(endDate.getMonth()+3);
+    var weeks = []; var cur = new Date(start); var weekNum = 1;
+    while(cur < endDate){
+      var wEnd = new Date(cur); wEnd.setDate(wEnd.getDate()+6);
+      weeks.push({ week_number: weekNum, week_start: cur.toISOString().split('T')[0], week_end: wEnd.toISOString().split('T')[0] });
+      cur.setDate(cur.getDate()+7); weekNum++;
+    }
+    var shuffled = teachers.slice().sort(function(){return Math.random()-.5;});
+    var assignments = weeks.map(function(w,i){
+      return Object.assign({}, w, {
+        assigned_to: shuffled[i % shuffled.length].id,
+        teacher_name: shuffled[i % shuffled.length].full_name,
+        title: title, status:'pending', swapped:false
+      });
+    });
+    await apiCall('/term_duties/generate.php','POST',{ term_start: startDate, title: title, weeks: assignments });
+    showAlert('msg-box','✅ Generated '+weeks.length+' weeks for '+teachers.length+' teachers!','success');
+    await loadTermSchedule();
+  } catch(e){ showAlert('msg-box',e.message); }
+  finally { btn.textContent='⚡ Generate'; btn.disabled=false; }
+}
+
+async function loadTermSchedule() {
+  try {
+    if(!teachers.length) teachers = await apiCall('/users/get_teachers.php');
+    var data = await apiCall('/term_duties/get_all.php');
+    termSchedule = data;
+    renderTermSchedule(data);
+    renderTermSummary(data);
+  } catch(e){ document.getElementById('term-schedule-list').innerHTML='<div class="empty-state">No schedule yet. Generate one above.</div>'; }
+}
+
+function renderTermSummary(data) {
+  var el = document.getElementById('term-summary');
+  if(!data.length){ el.innerHTML=''; return; }
+  var swapped = data.filter(function(d){return d.swapped==1||d.swapped===true;}).length;
+  var weekNums = {}; data.forEach(function(d){weekNums[d.week_number]=1;});
+  var uniqueWeeks = Object.keys(weekNums).length;
+  var start = data[0] ? data[0].week_start : '';
+  var end = data[data.length-1] ? data[data.length-1].week_end : '';
+  el.innerHTML =
+    '<div class="term-stat"><div class="n">'+uniqueWeeks+'</div><div class="l">Total Weeks</div></div>'+
+    '<div class="term-stat"><div class="n">'+swapped+'</div><div class="l">Transferred</div></div>'+
+    '<div class="term-stat"><div class="n">'+fmtDate(start)+'</div><div class="l">Term Start</div></div>'+
+    '<div class="term-stat"><div class="n">'+fmtDate(end)+'</div><div class="l">Term End</div></div>';
+}
+
+function renderTermSchedule(data) {
+  var el = document.getElementById('term-schedule-list');
+  if(!data.length){ el.innerHTML='<div class="empty-state">No schedule yet.</div>'; return; }
+  // Group by week_number
+  var byWeek = {};
+  data.forEach(function(w){
+    if(!byWeek[w.week_number]) byWeek[w.week_number] = { week:w, teachers:[] };
+    byWeek[w.week_number].teachers.push(w);
+  });
+  el.innerHTML = Object.keys(byWeek).sort(function(a,b){return a-b;}).map(function(wn){
+    var grp = byWeek[wn];
+    var w = grp.week;
+    var teacherTags = grp.teachers.map(function(t){
+      return '<span class="teacher-tag '+(t.swapped?'swapped':'')+'">'+escapeHtml(t.teacher_name)+(t.swapped?' 🔄':'')+'</span>';
+    }).join('');
+    return '<div class="week-band" id="week-'+w.id+'">'+
+      '<div class="week-band-header" onclick="toggleWeek('+w.id+')">'+
+        '<div class="week-num">Week '+w.week_number+'</div>'+
+        '<div>'+
+          '<div class="week-dates">'+fmtDate(w.week_start)+' → '+fmtDate(w.week_end)+'</div>'+
+          '<div style="margin-top:4px">'+teacherTags+'</div>'+
+        '</div>'+
+        '<div class="week-actions" onclick="event.stopPropagation()">'+
+          '<button class="btn btn-sm btn-secondary" onclick="openEditWeek('+w.id+',\''+escapeHtml(w.teacher_name)+'\',\''+w.week_start+'\',\''+w.week_end+'\','+w.week_number+')">✏️ Edit</button>'+
+        '</div>'+
+      '</div>'+
+      '<div class="week-duties-body" id="week-body-'+w.id+'">'+
+        '<div style="padding-top:10px;font-size:.78rem;color:var(--text2)">'+
+          '<strong style="color:var(--text)">Duty:</strong> '+escapeHtml(w.title)+'<br/>'+
+          '<strong style="color:var(--text)">Status:</strong> '+badge(w.status)+
+          (w.swap_note?'<br/><strong style="color:var(--text)">Note:</strong> <em style="color:var(--accent)">'+escapeHtml(w.swap_note)+'</em>':'')+
+        '</div>'+
+      '</div>'+
+    '</div>';
+  }).join('');
+}
+
+function toggleWeek(id){ document.getElementById('week-body-'+id).classList.toggle('open'); }
+function expandAll(){ document.querySelectorAll('.week-duties-body').forEach(function(x){x.classList.add('open');}); }
+function collapseAll(){ document.querySelectorAll('.week-duties-body').forEach(function(x){x.classList.remove('open');}); }
+
+function openEditWeek(id, teacherName, wStart, wEnd, wNum) {
+  editingWeekId = id;
+  // Show current teachers for this week
+  var grp = termSchedule.filter(function(w){return w.week_number==wNum;});
+  document.getElementById('edit-week-info').textContent = 'Week '+wNum+': '+fmtDate(wStart)+' → '+fmtDate(wEnd);
+  document.getElementById('edit-week-current-teachers').innerHTML =
+    '<div style="font-size:.75rem;color:var(--text2);margin-bottom:6px">Current teachers on duty:</div>'+
+    grp.map(function(t){
+      return '<span class="teacher-tag '+(t.swapped?'swapped':'')+'">'+escapeHtml(t.teacher_name)+'</span>';
+    }).join('');
+  var sel = document.getElementById('edit-week-teacher');
+  sel.innerHTML = '<option value="">Select teacher…</option>'+teachers.map(function(t){return '<option value="'+t.id+'">'+escapeHtml(t.full_name)+'</option>';}).join('');
+  document.getElementById('edit-week-reason').value = '';
+  document.getElementById('action-replace').checked = true;
+  document.getElementById('editWeekModal').classList.add('active');
+}
+
+async function saveWeekEdit() {
+  var teacherId = document.getElementById('edit-week-teacher').value;
+  var note = document.getElementById('edit-week-reason').value;
+  var action = document.querySelector('input[name="edit-action"]:checked').value;
+  if(!teacherId){ showAlert('msg-box','Please select a teacher'); return; }
+  try {
+    await apiCall('/term_duties/reassign.php','POST',{ id: editingWeekId, teacher_id: teacherId, note: note, action: action });
+    showAlert('msg-box', action==='add'?'Teacher added to week!':'Week reassigned!','success');
+    closeModal('editWeekModal');
+    await loadTermSchedule();
+  } catch(e){ showAlert('msg-box',e.message); }
+}
+
+// ── SWAP REQUESTS ──
+async function loadSwapRequests() {
+  if(!teachers.length) teachers = await apiCall('/users/get_teachers.php');
+  try {
+    swapRequests = await apiCall('/swap/get.php');
+    var el = document.getElementById('swap-requests-list');
+    if(!swapRequests.length){ el.innerHTML='<div class="empty-state">No swap requests yet</div>'; return; }
+    el.innerHTML = swapRequests.map(function(s){
+      return '<div class="swap-request-card">'+
+        '<div class="swap-req-header">'+
+          '<div class="swap-req-teacher">🔄 '+escapeHtml(s.requesting_teacher)+' → '+escapeHtml(s.target_teacher)+'</div>'+
+          '<span class="badge badge-'+s.status+'">'+s.status+'</span>'+
+        '</div>'+
+        '<div class="swap-req-meta">Date: <strong>'+fmtDate(s.duty_date)+'</strong>'+(s.reason?' · Reason: '+escapeHtml(s.reason):'')+(s.response_comment?' · Note: '+escapeHtml(s.response_comment):'')+'</div>'+
+        (s.status==='pending'?'<div class="swap-reassign-row"><button class="btn btn-sm btn-primary" onclick="openRespondSwap('+s.id+',\''+escapeHtml(s.requesting_teacher)+'\',\''+s.duty_date+'\')">✏️ Review &amp; Reassign</button></div>':'')+
+      '</div>';
+    }).join('');
+  } catch(e){ showAlert('msg-box',e.message); }
+}
+
+function openRespondSwap(id, requester, dutyDate) {
+  respondingSwapId = id;
+  document.getElementById('swap-modal-info').innerHTML = '<strong>'+escapeHtml(requester)+'</strong> requests swap for <strong>'+fmtDate(dutyDate)+'</strong>.<br/>Select replacement teacher then approve or reject.';
+  var sel = document.getElementById('swap-reassign-teacher');
+  sel.innerHTML = '<option value="">Select new teacher…</option>'+teachers.map(function(t){return '<option value="'+t.id+'">'+escapeHtml(t.full_name)+'</option>';}).join('');
+  document.getElementById('swap-comment').value = '';
+  document.getElementById('respondSwapModal').classList.add('active');
+}
+
+async function handleSwap(status) {
+  var teacherId = document.getElementById('swap-reassign-teacher').value;
+  var comment = document.getElementById('swap-comment').value;
+  if(status==='approved' && !teacherId){ showAlert('msg-box','Select a replacement teacher'); return; }
+  try {
+    await apiCall('/swap/respond_academician.php','POST',{ request_id: respondingSwapId, status: status, response_comment: comment, reassign_to: teacherId||null });
+    showAlert('msg-box', status==='approved'?'Swap approved and reassigned!':'Swap rejected.','success');
+    closeModal('respondSwapModal');
+    await loadSwapRequests();
+  } catch(e){ showAlert('msg-box',e.message); }
+}
+
+// ── TIMETABLE ──
+function toggleTimetableForm(){ var w=document.getElementById('timetable-form-wrap'); w.style.display=w.style.display==='none'?'':'none'; }
+async function loadTimetable() {
+  try { renderTimetable(await apiCall('/timetable/get.php'),'timetable-view'); }
+  catch(e){ document.getElementById('timetable-view').innerHTML='<div class="empty-timetable">Failed to load timetable</div>'; }
+}
+async function addTimetable(e) {
+  e.preventDefault();
+  var data = { day:document.getElementById('tt-day').value, time_slot:document.getElementById('tt-time').value, subject:document.getElementById('tt-subject').value, class_name:document.getElementById('tt-class').value, teacher_id:document.getElementById('tt-teacher').value, room:document.getElementById('tt-room').value };
+  try { await apiCall('/timetable/create.php','POST',data); showAlert('msg-box','Entry added!','success'); e.target.reset(); await loadTimetable(); }
+  catch(err){ showAlert('msg-box',err.message); }
+}
+
+// ── SPECIAL TASKS ──
+async function loadSpecial() {
+  try {
+    specialTasks = await apiCall('/special_tasks/get_all.php');
+    var el = document.getElementById('special-list');
+    if(!specialTasks.length){ el.innerHTML='<div class="empty-state">No special tasks</div>'; return; }
+    el.innerHTML = specialTasks.map(function(t){
+      return '<div class="item"><div class="item-info"><div class="item-title">'+escapeHtml(t.title)+' '+badge(t.priority)+'</div><div class="item-meta">→ '+escapeHtml(t.assigned_to_name)+' · Due: '+fmtDate(t.due_date)+' · '+badge(t.status)+'</div></div><div class="item-actions"><button class="btn btn-sm btn-danger" onclick="deleteSpecial('+t.id+')">Delete</button></div></div>';
+    }).join('');
+  } catch(e){ showAlert('msg-box',e.message); }
+}
+async function createSpecial(e) {
+  e.preventDefault();
+  try {
+    await apiCall('/special_tasks/create.php','POST',{ title:document.getElementById('sp-title').value, description:document.getElementById('sp-desc').value, assigned_to:document.getElementById('sp-teacher').value, priority:document.getElementById('sp-priority').value, due_date:document.getElementById('sp-due').value });
+    showAlert('msg-box','Special task assigned!','success'); e.target.reset(); await loadSpecial();
+  } catch(err){ showAlert('msg-box',err.message); }
+}
+async function deleteSpecial(id){ if(!confirm('Delete this task?')) return; await apiCall('/special_tasks/delete.php','POST',{id:id}); await loadSpecial(); }
+
+// ── DUTIES ──
+async function loadDuties() {
+  try {
+    duties = await apiCall('/duties/get_all.php');
+    var el = document.getElementById('duties-list');
+    if(!duties.length){ el.innerHTML='<div class="empty-state">No duties</div>'; return; }
+    el.innerHTML = duties.map(function(d){
+      return '<div class="item"><div class="item-info"><div class="item-title">'+escapeHtml(d.title)+'</div><div class="item-meta">→ '+escapeHtml(d.assigned_to_name)+' · '+fmtDate(d.duty_date)+(d.duty_time?' '+d.duty_time:'')+(d.location?' · '+d.location:'')+'</div></div><div class="item-actions">'+badge(d.status)+'<button class="btn btn-sm btn-danger" onclick="deleteDuty('+d.id+')">Delete</button></div></div>';
+    }).join('');
+  } catch(e){ showAlert('msg-box',e.message); }
+}
+async function createDuty(e) {
+  e.preventDefault();
+  try {
+    await apiCall('/duties/create.php','POST',{ title:document.getElementById('d-title').value, description:document.getElementById('d-desc').value, assigned_to:document.getElementById('d-teacher').value, duty_date:document.getElementById('d-date').value, duty_time:document.getElementById('d-time').value, location:document.getElementById('d-location').value });
+    showAlert('msg-box','Duty assigned!','success'); e.target.reset(); await loadDuties();
+  } catch(err){ showAlert('msg-box',err.message); }
+}
+async function deleteDuty(id){ if(!confirm('Delete this duty?')) return; await apiCall('/duties/delete.php','POST',{id:id}); await loadDuties(); }
+
+// ── ROSTER — table view ──
+async function loadRoster() {
+  var el = document.getElementById('roster-container');
+  el.innerHTML = '<div class="loading">Loading…</div>';
+  try {
+    var data = await apiCall('/roster/get_all.php');
+    if(!data.length){ el.innerHTML='<div class="empty-state" style="padding:40px">No roster entries submitted yet</div>'; return; }
+    el.innerHTML = '<table class="roster-tbl">'+
+      '<thead>'+
+        '<tr>'+
+          '<th rowspan="2" style="text-align:left">Teacher</th>'+
+          '<th rowspan="2">Date</th>'+
+          '<th rowspan="2">Class</th>'+
+          '<th colspan="3" class="grp">Registered</th>'+
+          '<th colspan="3" class="grp">Present</th>'+
+          '<th colspan="3" class="grp">Absent</th>'+
+          '<th colspan="3" class="grp">Permitted</th>'+
+          '<th colspan="3" class="grp">Sick</th>'+
+          '<th rowspan="2">Remarks</th>'+
+        '</tr>'+
+        '<tr>'+
+          '<th>B</th><th>G</th><th>T</th>'+
+          '<th>B</th><th>G</th><th>T</th>'+
+          '<th>B</th><th>G</th><th>T</th>'+
+          '<th>B</th><th>G</th><th>T</th>'+
+          '<th>B</th><th>G</th><th>T</th>'+
+        '</tr>'+
+      '</thead><tbody>'+
+      data.map(function(r){
+        var rb=parseInt(r.reg_boys)||0,  rg=parseInt(r.reg_girls)||0;
+        var pb=parseInt(r.pres_boys)||0, pg=parseInt(r.pres_girls)||0;
+        var ab=parseInt(r.abs_boys)||0,  ag=parseInt(r.abs_girls)||0;
+        var pmb=parseInt(r.perm_boys)||0,pmg=parseInt(r.perm_girls)||0;
+        var sb=parseInt(r.sick_boys)||0, sg=parseInt(r.sick_girls)||0;
+        return '<tr>'+
+          '<td class="lbl">'+escapeHtml(r.teacher_name)+'</td>'+
+          '<td>'+fmtDate(r.date)+'</td>'+
+          '<td style="font-weight:600;color:var(--accent)">'+escapeHtml(r.class_name||'—')+'</td>'+
+          '<td>'+rb+'</td><td>'+rg+'</td><td style="font-weight:700">'+(rb+rg)+'</td>'+
+          '<td>'+pb+'</td><td>'+pg+'</td><td style="font-weight:700">'+(pb+pg)+'</td>'+
+          '<td>'+ab+'</td><td>'+ag+'</td><td style="font-weight:700;color:var(--red)">'+(ab+ag)+'</td>'+
+          '<td>'+pmb+'</td><td>'+pmg+'</td><td style="font-weight:700">'+(pmb+pmg)+'</td>'+
+          '<td>'+sb+'</td><td>'+sg+'</td><td style="font-weight:700;color:var(--accent)">'+(sb+sg)+'</td>'+
+          '<td style="font-size:.72rem;text-align:left">'+escapeHtml(r.remarks||'—')+'</td>'+
+        '</tr>';
+      }).join('')+
+      '</tbody></table>';
+  } catch(e){ el.innerHTML='<div class="empty-state">Error: '+e.message+'</div>'; }
+}
+
+// ── TEACHERS ──
+async function loadTeachers() {
+  if(teachers.length){ populateTeacherDropdowns(); return; }
+  teachers = await apiCall('/users/get_teachers.php');
+  populateTeacherDropdowns();
+}
+function populateTeacherDropdowns() {
+  var opts = teachers.map(function(t){return '<option value="'+t.id+'">'+escapeHtml(t.full_name)+'</option>';}).join('');
+  ['sp-teacher','d-teacher','tt-teacher','edit-week-teacher','swap-reassign-teacher'].forEach(function(id){
+    var el = document.getElementById(id);
+    if(el && !el.dataset.populated){ el.innerHTML='<option value="">Select teacher…</option>'+opts; el.dataset.populated='1'; }
+  });
+}
+
+// ── PROFILE ──
+function showProfile() {
+  var u = getUser();
+  document.getElementById('profile-name').textContent  = u.full_name;
+  document.getElementById('profile-role').textContent  = 'Academician';
+  document.getElementById('profile-email').textContent = u.email||'—';
+}
+async function changePassword(e) {
+  e.preventDefault();
+  var np=document.getElementById('new-password').value, cp=document.getElementById('confirm-password').value;
+  if(np!==cp){ showAlert('msg-box','Passwords do not match'); return; }
+  try { await apiCall('/auth/change_password.php','POST',{current_password:document.getElementById('current-password').value,new_password:np}); showAlert('msg-box','Password changed!','success'); e.target.reset(); }
+  catch(err){ showAlert('msg-box',err.message); }
+}
+
+function closeModal(id){ document.getElementById(id).classList.remove('active'); }
+window.onclick = function(e){ if(e.target.classList.contains('modal')) e.target.classList.remove('active'); };
+
+document.getElementById('term-start').value = new Date().toISOString().split('T')[0];
+loadOverview();
+</script>
+</body>
+</html>

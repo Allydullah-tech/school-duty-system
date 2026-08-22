@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>SchoolDuty — School Management System</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&family=Playfair+Display:wght@600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --bg:#0a0e1a; --bg2:#111827; --bg3:#1a2235; --surface:#1e2d42;
+      --border:#2a3a52; --text:#e8eef7; --text2:#8fa3bf; --text3:#5a7290;
+      --accent:#f5a623; --green:#34d399; --blue:#60a5fa; --purple:#a78bfa;
+    }
+    *{margin:0;padding:0;box-sizing:border-box;}
+    body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
+    .container{max-width:1200px;margin:0 auto;padding:0 28px;}
+
+    /* NAV */
+    nav{padding:22px 0;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+    .logo{display:flex;align-items:center;gap:11px;}
+    .logo-icon{width:40px;height:40px;background:linear-gradient(135deg,var(--accent),#e8941a);border-radius:11px;display:flex;align-items:center;justify-content:center;font-family:'Playfair Display',serif;font-weight:700;font-size:1.1rem;color:#fff;box-shadow:0 6px 16px rgba(245,166,35,.3);}
+    .logo-name{font-family:'Playfair Display',serif;font-size:1.15rem;font-weight:700;background:linear-gradient(135deg,var(--accent),var(--blue));-webkit-background-clip:text;background-clip:text;color:transparent;}
+    .nav-btn{padding:9px 22px;background:linear-gradient(135deg,var(--accent),#e8941a);color:#fff;border-radius:9px;text-decoration:none;font-size:.82rem;font-weight:600;transition:all .2s;}
+    .nav-btn:hover{transform:translateY(-1px);box-shadow:0 5px 15px rgba(245,166,35,.35);}
+
+    /* HERO */
+    .hero{text-align:center;padding:70px 0 50px;}
+    .hero-pill{display:inline-flex;align-items:center;gap:8px;background:rgba(245,166,35,.1);border:1px solid rgba(245,166,35,.2);padding:6px 16px;border-radius:40px;font-size:.72rem;font-weight:600;color:var(--accent);margin-bottom:26px;letter-spacing:.5px;}
+    .hero-pill span{width:6px;height:6px;background:var(--accent);border-radius:50%;animation:pulse 1.5s infinite;}
+    @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+    h1{font-family:'Playfair Display',serif;font-size:3.2rem;font-weight:800;line-height:1.15;margin-bottom:18px;color:var(--text);}
+    .grad{background:linear-gradient(135deg,var(--accent),var(--blue));-webkit-background-clip:text;background-clip:text;color:transparent;}
+    .hero-sub{font-size:.95rem;color:var(--text2);max-width:520px;margin:0 auto 34px;line-height:1.7;}
+    .hero-btns{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;}
+    .btn-hero{padding:13px 32px;border-radius:10px;text-decoration:none;font-size:.88rem;font-weight:600;transition:all .2s;}
+    .btn-hero.primary{background:linear-gradient(135deg,var(--accent),#e8941a);color:#fff;box-shadow:0 6px 18px rgba(245,166,35,.3);}
+    .btn-hero.primary:hover{transform:translateY(-2px);box-shadow:0 10px 24px rgba(245,166,35,.4);}
+    .btn-hero.outline{border:1px solid var(--border);color:var(--text2);}
+    .btn-hero.outline:hover{border-color:var(--accent);color:var(--accent);}
+
+    /* STATS */
+    .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--border);border:1px solid var(--border);border-radius:16px;overflow:hidden;margin:44px 0;}
+    .stat{background:var(--bg2);padding:26px 20px;text-align:center;}
+    .stat-n{font-family:'DM Mono',monospace;font-size:1.9rem;font-weight:500;background:linear-gradient(135deg,var(--accent),var(--blue));-webkit-background-clip:text;background-clip:text;color:transparent;}
+    .stat-l{font-size:.68rem;color:var(--text3);margin-top:5px;text-transform:uppercase;letter-spacing:.6px;}
+
+    /* ROLES */
+    .section{padding:50px 0;}
+    .section-label{text-align:center;font-size:.7rem;font-weight:700;color:var(--accent);letter-spacing:2px;text-transform:uppercase;margin-bottom:10px;}
+    .section-title{text-align:center;font-family:'Playfair Display',serif;font-size:1.9rem;font-weight:700;margin-bottom:36px;color:var(--text);}
+    .roles-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;}
+    .role-card{background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:26px 18px;text-align:center;transition:all .25s;cursor:default;}
+    .role-card:hover{transform:translateY(-4px);border-color:var(--accent);box-shadow:0 12px 30px rgba(0,0,0,.3);}
+    .role-icon{font-size:2rem;margin-bottom:12px;}
+    .role-card h3{font-size:.95rem;font-weight:600;margin-bottom:6px;color:var(--text);}
+    .role-card p{font-size:.72rem;color:var(--text2);line-height:1.55;}
+
+    /* FEATURES */
+    .features-wrap{background:var(--bg2);border:1px solid var(--border);border-radius:22px;padding:44px 36px;margin:10px 0;}
+    .features-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:28px;}
+    .feat{text-align:center;padding:16px;}
+    .feat-icon{font-size:1.8rem;margin-bottom:10px;}
+    .feat h4{font-size:.88rem;font-weight:600;margin-bottom:5px;color:var(--text);}
+    .feat p{font-size:.7rem;color:var(--text2);line-height:1.5;}
+
+    /* NEW BADGE */
+    .new-badge{display:inline-block;background:rgba(52,211,153,.15);color:var(--green);font-size:.6rem;font-weight:700;padding:1px 6px;border-radius:4px;text-transform:uppercase;letter-spacing:.5px;vertical-align:middle;margin-left:5px;}
+
+    /* CTA */
+    .cta{padding:50px 0 64px;}
+    .cta-box{background:var(--bg2);border:1px solid var(--border);border-radius:22px;padding:50px;text-align:center;}
+    .cta-box h2{font-family:'Playfair Display',serif;font-size:1.7rem;font-weight:700;margin-bottom:10px;}
+    .cta-box p{color:var(--text2);font-size:.82rem;margin-bottom:26px;}
+
+    footer{text-align:center;padding:28px 0;border-top:1px solid var(--border);font-size:.7rem;color:var(--text3);}
+
+    @media(max-width:900px){.roles-grid,.features-grid{grid-template-columns:repeat(2,1fr)}.stats{grid-template-columns:repeat(2,1fr)}h1{font-size:2.1rem}}
+    @media(max-width:580px){.roles-grid,.features-grid{grid-template-columns:1fr}.stats{grid-template-columns:repeat(2,1fr)}}
+  </style>
+</head>
+<body>
+<div class="container">
+  <nav>
+    <div class="logo">
+      <div class="logo-icon">S</div>
+      <span class="logo-name">SchoolDuty</span>
+    </div>
+    <a href="login.html" class="nav-btn">Sign In →</a>
+  </nav>
+
+  <section class="hero">
+    <div class="hero-pill"><span></span> School Management System</div>
+    <h1>Manage School Duties<br>with <span class="grad">Precision & Ease</span></h1>
+    <p class="hero-sub">A unified platform for administrators, academicians, teachers and students. Automate term duty scheduling, track swaps, manage tasks and assignments — all in one place.</p>
+    <div class="hero-btns">
+      <a href="login.html" class="btn-hero primary">Get Started →</a>
+      <a href="#roles" class="btn-hero outline">Learn More</a>
+    </div>
+  </section>
+
+  <div class="stats">
+    <div class="stat"><div class="stat-n">4</div><div class="stat-l">User Roles</div></div>
+    <div class="stat"><div class="stat-n">3mo</div><div class="stat-l">Auto Term Schedule</div></div>
+    <div class="stat"><div class="stat-n">JWT</div><div class="stat-l">Secure Auth</div></div>
+    <div class="stat"><div class="stat-n">24/7</div><div class="stat-l">Availability</div></div>
+  </div>
+
+  <section id="roles" class="section">
+    <div class="section-label">Who Uses This</div>
+    <div class="section-title">Four Roles, One System</div>
+    <div class="roles-grid">
+      <div class="role-card"><div class="role-icon">🛡️</div><h3>Administrator</h3><p>Full system control. Manage users, monitor all activities, view duties and tasks.</p></div>
+      <div class="role-card"><div class="role-icon">📐</div><h3>Academician</h3><p>Auto-generate term duty rosters, manage timetables, approve or redirect swap requests.</p></div>
+      <div class="role-card"><div class="role-icon">📚</div><h3>Teacher</h3><p>View your full term duty schedule, request swaps, post tasks to students, submit roster book.</p></div>
+      <div class="role-card"><div class="role-icon">🎓</div><h3>Student</h3><p>View assignments, submit work with files, track grades and view class timetable.</p></div>
+    </div>
+  </section>
+
+  <div class="features-wrap">
+    <div class="section-title" style="margin-bottom:28px">Powerful Features</div>
+    <div class="features-grid">
+      <div class="feat"><div class="feat-icon">🗓️</div><h4>Auto Term Duty Roster <span class="new-badge">New</span></h4><p>One click generates 3-month duty schedules distributing all teachers equally week by week.</p></div>
+      <div class="feat"><div class="feat-icon">🔄</div><h4>Swap Management <span class="new-badge">New</span></h4><p>Teachers request duty swaps; academician approves and reassigns to another teacher seamlessly.</p></div>
+      <div class="feat"><div class="feat-icon">📅</div><h4>Weekly Timetable</h4><p>Full school timetable with subjects, teachers, classes and rooms in a clean grid view.</p></div>
+      <div class="feat"><div class="feat-icon">📋</div><h4>Duty Management</h4><p>Assign, track and update individual duties with dates, times and locations.</p></div>
+      <div class="feat"><div class="feat-icon">📎</div><h4>Task & File Submissions</h4><p>Students submit assignments with file attachments; teachers grade with feedback.</p></div>
+      <div class="feat"><div class="feat-icon">🔐</div><h4>Secure Authentication</h4><p>Role-based JWT auth with password recovery via security question for admins.</p></div>
+    </div>
+  </div>
+
+  <section class="cta">
+    <div class="cta-box">
+      <h2>Ready to Get Started?</h2>
+      <p>Accounts are managed by system administrators. Contact your school admin for credentials.</p>
+      <a href="login.html" class="btn-hero primary">Sign In →</a>
+    </div>
+  </section>
+
+  <footer>© 2024 SchoolDuty Management System. Built for schools.</footer>
+</div>
+<script src="assets/js/api.js"></script>
+<script>redirectIfLoggedIn();</script>
+</body>
+</html>

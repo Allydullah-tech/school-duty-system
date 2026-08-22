@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Sign In — SchoolDuty</title>
+  <link rel="stylesheet" href="assets/css/style.css"/>
+</head>
+<body>
+<div class="auth-wrap">
+  <div class="auth-card">
+    <div class="auth-logo">
+      <div class="logo-icon">S</div>
+      <h1>SchoolDuty</h1>
+      <p>Sign in to your account</p>
+    </div>
+
+    <div class="mode-toggle">
+      <button id="btn-admin" onclick="setMode('admin')">👑 Admin</button>
+      <button id="btn-staff" onclick="setMode('staff')">👥 Staff</button>
+      <button id="btn-student" onclick="setMode('student')">🎓 Student</button>
+    </div>
+
+    <div id="mode-description" class="mode-description"></div>
+    <div id="alert-box"></div>
+
+    <!-- Admin -->
+    <form id="admin-form" onsubmit="loginAdmin(event)" style="display:none">
+      <div class="form-group">
+        <label>Email Address</label>
+        <input type="email" id="admin-email" placeholder="admin@school.com" required/>
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" id="admin-password" placeholder="••••••••" required/>
+      </div>
+      <button type="submit" class="btn btn-primary" id="admin-btn" style="background:linear-gradient(135deg,#ef4444,#dc2626)">Login as Admin</button>
+      <div style="text-align:right;margin-top:.75rem">
+        <a href="reset-password.html" style="color:var(--accent);font-size:.72rem;text-decoration:none">Forgot Password?</a>
+      </div>
+    </form>
+
+    <!-- Staff -->
+    <form id="staff-form" onsubmit="loginStaff(event)">
+      <div class="form-group">
+        <label>Email Address</label>
+        <input type="email" id="staff-email" placeholder="your.email@school.com" required/>
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" id="staff-password" placeholder="••••••••" required/>
+      </div>
+      <button type="submit" class="btn btn-primary" id="staff-btn">Login as Staff</button>
+    </form>
+
+    <!-- Student -->
+    <form id="student-form" onsubmit="loginStudent(event)" style="display:none">
+      <div class="form-group">
+        <label>Registration Number</label>
+        <input type="text" id="student-reg" placeholder="e.g., 2024/001" required/>
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" id="student-password" placeholder="••••••••" required/>
+      </div>
+      <button type="submit" class="btn btn-primary" id="student-btn" style="background:linear-gradient(135deg,var(--green),var(--green2))">Login as Student</button>
+    </form>
+
+    <p class="auth-link"><a href="index.html">← Back to Home</a></p>
+  </div>
+</div>
+<script src="assets/js/api.js"></script>
+<script>
+  redirectIfLoggedIn();
+  const roleRoutes = { admin:'admin.html', academician:'academician.html', teacher:'teacher.html', student:'student.html' };
+  const descs = { admin:'🔐 Head of School / System Administrators only', staff:'📚 Teachers and Academicians', student:'📝 Students — use your registration number' };
+
+  function setMode(mode) {
+    ['admin','staff','student'].forEach(m => {
+      document.getElementById('btn-'+m).classList.toggle('active', m===mode);
+      document.getElementById(m+'-form').style.display = m===mode ? '' : 'none';
+    });
+    document.getElementById('mode-description').textContent = descs[mode];
+    document.getElementById('alert-box').innerHTML = '';
+  }
+
+  async function loginAdmin(e) {
+    e.preventDefault();
+    const btn = document.getElementById('admin-btn');
+    btn.textContent = 'Verifying…'; btn.disabled = true;
+    try {
+      const d = await apiCall('/auth/login.php','POST',{username:document.getElementById('admin-email').value,password:document.getElementById('admin-password').value,login_type:'admin'});
+      saveSession(d.token,d.user); window.location.href='admin.html';
+    } catch(err){ showAlert('alert-box',err.message); btn.textContent='Login as Admin'; btn.disabled=false; }
+  }
+
+  async function loginStaff(e) {
+    e.preventDefault();
+    const btn = document.getElementById('staff-btn');
+    btn.textContent = 'Verifying…'; btn.disabled = true;
+    try {
+      const d = await apiCall('/auth/login.php','POST',{username:document.getElementById('staff-email').value,password:document.getElementById('staff-password').value,login_type:'staff'});
+      saveSession(d.token,d.user); window.location.href=roleRoutes[d.user.role];
+    } catch(err){ showAlert('alert-box',err.message); btn.textContent='Login as Staff'; btn.disabled=false; }
+  }
+
+  async function loginStudent(e) {
+    e.preventDefault();
+    const btn = document.getElementById('student-btn');
+    btn.textContent = 'Verifying…'; btn.disabled = true;
+    try {
+      const d = await apiCall('/auth/login.php','POST',{username:document.getElementById('student-reg').value,password:document.getElementById('student-password').value,login_type:'student'});
+      saveSession(d.token,d.user); window.location.href='student.html';
+    } catch(err){ showAlert('alert-box',err.message); btn.textContent='Login as Student'; btn.disabled=false; }
+  }
+
+  setMode('staff');
+</script>
+</body>
+</html>

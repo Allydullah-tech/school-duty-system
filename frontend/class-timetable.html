@@ -1,0 +1,762 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Class Timetables — SchoolDuty</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=Playfair+Display:wght@700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+  <style>
+    :root{--bg:#0a0e1a;--bg2:#111827;--bg3:#1a2235;--border:#2a3a52;--border2:#3a4f6a;--text:#e8eef7;--text2:#8fa3bf;--text3:#5a7290;--accent:#f5a623;--navy:#1a3a6b;--navy2:#2d5494;--green:#34d399;--red:#f87171;--blue:#3b82f6;--sidebar-w:240px;}
+    *{margin:0;padding:0;box-sizing:border-box;}
+    body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:14px;}
+    ::-webkit-scrollbar{width:5px;height:5px;}::-webkit-scrollbar-track{background:var(--bg2);}::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px;}
+    .dashboard{display:flex;min-height:100vh;}
+    .sidebar{width:var(--sidebar-w);min-width:var(--sidebar-w);background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;top:0;left:0;height:100vh;overflow-y:auto;z-index:100;}
+    .sidebar-header{padding:22px 20px 16px;border-bottom:1px solid var(--border);}
+    .sidebar-header h2{font-family:'Playfair Display',serif;font-size:1.1rem;font-weight:700;color:var(--text);display:flex;align-items:center;gap:9px;}
+    .sidebar-header h2::before{content:'S';display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;background:linear-gradient(135deg,var(--accent),#e8941a);border-radius:7px;font-size:.85rem;font-weight:700;color:#fff;flex-shrink:0;}
+    .sidebar-header p{font-size:.7rem;color:var(--text3);margin-top:3px;margin-left:37px;}
+    .sidebar-user{padding:14px 20px;border-bottom:1px solid var(--border);}
+    .sidebar-user .name{font-weight:600;font-size:.85rem;color:var(--text);margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .role-badge{display:inline-block;padding:2px 9px;border-radius:20px;font-size:.65rem;font-weight:600;text-transform:uppercase;letter-spacing:.5px;background:rgba(167,139,250,.15);color:#a78bfa;}
+    .sidebar-nav{flex:1;padding:12px 10px;display:flex;flex-direction:column;gap:2px;}
+    .sidebar-nav a{display:flex;align-items:center;gap:9px;padding:9px 12px;border-radius:9px;text-decoration:none;color:var(--text2);font-size:.82rem;font-weight:500;transition:all .15s;}
+    .sidebar-nav a:hover{background:var(--bg3);color:var(--text);}
+    .sidebar-nav a.active{background:rgba(245,166,35,.12);color:var(--accent);font-weight:600;}
+    .sidebar-footer{padding:16px 20px;border-top:1px solid var(--border);}
+    .sidebar-footer button{width:100%;padding:9px;background:var(--bg3);border:1px solid var(--border);border-radius:9px;color:var(--text2);font-family:'DM Sans',sans-serif;font-size:.8rem;cursor:pointer;transition:all .2s;}
+    .sidebar-footer button:hover{border-color:var(--red);color:var(--red);}
+    .main-content{flex:1;margin-left:var(--sidebar-w);padding:28px 32px;min-height:100vh;max-width:calc(100vw - var(--sidebar-w));}
+    .page-header{margin-bottom:22px;padding-bottom:16px;border-bottom:1px solid var(--border);}
+    .page-header h1{font-family:'Playfair Display',serif;font-size:1.6rem;font-weight:700;color:var(--text);margin-bottom:3px;}
+    .page-header p{color:var(--text2);font-size:.83rem;}
+    .btn{display:inline-flex;align-items:center;gap:6px;padding:9px 18px;border-radius:9px;font-family:'DM Sans',sans-serif;font-size:.82rem;font-weight:600;cursor:pointer;border:none;text-decoration:none;transition:all .2s;}
+    .btn-primary{background:linear-gradient(135deg,var(--accent),#e8941a);color:#fff;}
+    .btn-primary:hover{transform:translateY(-1px);box-shadow:0 5px 14px rgba(245,166,35,.3);}
+    .btn-secondary{background:var(--bg3);color:var(--text2);border:1px solid var(--border);}
+    .btn-secondary:hover{border-color:var(--border2);color:var(--text);}
+    .btn-navy{background:var(--navy);color:#fff;}
+    .btn-navy:hover{background:var(--navy2);transform:translateY(-1px);}
+    .btn-success{background:linear-gradient(135deg,var(--green),#10b981);color:#fff;}
+    .btn-danger{background:linear-gradient(135deg,var(--red),#ef4444);color:#fff;}
+    .btn-sm{padding:6px 13px;font-size:.75rem;border-radius:7px;}
+    .card{background:var(--bg2);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:20px;}
+    .card-header{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:12px;}
+    .card-header h3{font-family:'Playfair Display',serif;font-size:1rem;font-weight:700;color:var(--text);}
+    .card-header p{font-size:.75rem;color:var(--text2);margin-top:2px;}
+    .card-body{padding:18px 20px;}
+    .alert{padding:11px 15px;border-radius:9px;font-size:.82rem;margin-bottom:14px;}
+    .alert-error{background:rgba(248,113,113,.1);color:#fca5a5;border-left:3px solid var(--red);}
+    .alert-success{background:rgba(52,211,153,.1);color:#6ee7b7;border-left:3px solid var(--green);}
+    .form-group{margin-bottom:14px;}
+    label{display:block;font-size:.7rem;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.6px;margin-bottom:5px;}
+    input,select,textarea{width:100%;padding:9px 13px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:.86rem;outline:none;transition:border-color .2s,box-shadow .2s;}
+    input:focus,select:focus,textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(245,166,35,.1);}
+    select option{background:var(--bg2);}
+    textarea{resize:vertical;min-height:60px;}
+    .form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+    .form-row-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;}
+    .form-row-4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:10px;}
+    .divider{height:1px;background:var(--border);margin:16px 0;}
+    .empty-state{text-align:center;padding:40px 24px;color:var(--text3);font-size:.85rem;}
+    .loading{text-align:center;padding:40px;color:var(--text3);font-size:.85rem;}
+    .modal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.6);z-index:1000;justify-content:center;align-items:center;backdrop-filter:blur(4px);}
+    .modal.active{display:flex;}
+    .modal-content{background:var(--bg2);border-radius:14px;max-width:650px;width:92%;max-height:88vh;overflow-y:auto;border:1px solid var(--border);box-shadow:0 24px 60px rgba(0,0,0,.5);animation:slideUp .22s ease;}
+    @keyframes slideUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+    .modal-header{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;}
+    .modal-header h3{font-family:'Playfair Display',serif;color:var(--accent);font-size:1rem;}
+    .modal-close{background:none;border:none;font-size:22px;cursor:pointer;color:var(--text3);}
+    .modal-close:hover{color:var(--text);}
+    .modal-body{padding:18px 20px;}
+    .modal-footer{padding:14px 20px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:10px;}
+
+    /* CLASS CARDS LIST */
+    .classes-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px;margin-bottom:24px;}
+    .class-card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:18px;cursor:pointer;transition:all .2s;position:relative;}
+    .class-card:hover{border-color:var(--accent);transform:translateY(-2px);box-shadow:0 8px 20px rgba(0,0,0,.3);}
+    .class-card.selected{border-color:var(--accent);background:rgba(245,166,35,.05);}
+    .class-card-top{display:flex;align-items:center;gap:10px;margin-bottom:8px;}
+    .class-icon{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0;}
+    .class-name{font-weight:700;color:var(--text);font-size:.95rem;}
+    .class-meta{font-size:.72rem;color:var(--text2);}
+    .class-actions{display:flex;gap:6px;margin-top:10px;}
+
+    /* ── RATIBA YA DARASA — styled like the screenshot ── */
+    .ctt-page{background:var(--bg2);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:24px;}
+
+    /* Top banner — white-ish header like screenshot */
+    .ctt-banner{
+      background:linear-gradient(135deg,var(--navy),#0d2347);
+      padding:22px 28px 18px;
+      text-align:center;position:relative;overflow:hidden;
+    }
+    .ctt-banner::before{content:'';position:absolute;top:-20px;right:-20px;width:100px;height:100px;border-radius:50%;background:rgba(245,166,35,.08);}
+    .ctt-banner::after{content:'';position:absolute;bottom:-15px;left:-15px;width:70px;height:70px;border-radius:50%;background:rgba(59,130,246,.06);}
+    .ctt-title{font-family:'Playfair Display',serif;font-size:1.6rem;font-weight:800;color:#fff;letter-spacing:1px;text-transform:uppercase;margin-bottom:3px;}
+    .ctt-class-label{font-size:.95rem;font-weight:600;color:var(--accent);margin-bottom:4px;}
+    .ctt-tagline{font-size:.75rem;color:rgba(255,255,255,.45);font-style:italic;letter-spacing:.5px;}
+    .ctt-info-strip{display:flex;justify-content:center;gap:0;margin-top:16px;flex-wrap:wrap;border:1px solid rgba(255,255,255,.12);border-radius:10px;overflow:hidden;}
+    .ctt-info-item{flex:1;min-width:120px;padding:10px 14px;border-right:1px solid rgba(255,255,255,.1);text-align:center;}
+    .ctt-info-item:last-child{border-right:none;}
+    .ctt-info-icon{font-size:1.1rem;margin-bottom:4px;}
+    .ctt-info-label{font-size:.6rem;font-weight:700;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.8px;}
+    .ctt-info-val{font-size:.75rem;font-weight:600;color:rgba(255,255,255,.85);margin-top:1px;}
+
+    /* Table toolbar */
+    .ctt-toolbar{display:flex;align-items:center;justify-content:space-between;padding:12px 18px;background:var(--bg3);border-bottom:1px solid var(--border);flex-wrap:wrap;gap:8px;}
+    .ctt-day-tabs{display:flex;gap:4px;flex-wrap:wrap;}
+    .ctt-day-tab{padding:5px 12px;border-radius:7px;border:1px solid var(--border);background:transparent;color:var(--text2);font-family:'DM Sans',sans-serif;font-size:.72rem;font-weight:500;cursor:pointer;transition:all .15s;}
+    .ctt-day-tab:hover{border-color:var(--border2);color:var(--text);}
+    .ctt-day-tab.active{font-weight:700;color:#fff;}
+
+    /* Table */
+    .ctt-table-wrap{overflow-x:auto;}
+    table.ctt{width:100%;border-collapse:collapse;min-width:720px;}
+
+    /* Slot number column (like screenshot: "1", "2", "MAPUMZIKO") */
+    table.ctt .slot-col{width:64px;text-align:center;}
+    table.ctt .time-col{width:100px;}
+
+    table.ctt thead tr{background:linear-gradient(135deg,var(--navy2),var(--navy));}
+    table.ctt thead th{padding:11px 12px;font-size:.72rem;font-weight:700;color:rgba(255,255,255,.85);text-transform:uppercase;letter-spacing:.5px;text-align:center;border-right:1px solid rgba(255,255,255,.08);}
+    table.ctt thead th:last-child{border-right:none;}
+    table.ctt thead th.th-day{font-size:.8rem;font-weight:700;color:#fff;}
+
+    /* Break row */
+    table.ctt tr.break-row td{background:rgba(59,130,246,.06);padding:9px 12px;text-align:center;border-bottom:1px solid var(--border);border-top:1px solid var(--border);}
+    table.ctt tr.break-row .break-label{font-size:.78rem;font-weight:700;color:var(--blue);letter-spacing:.5px;display:flex;align-items:center;justify-content:center;gap:8px;}
+
+    /* Data rows */
+    table.ctt tbody tr.data-row{border-bottom:1px solid var(--border);transition:background .12s;}
+    table.ctt tbody tr.data-row:hover{background:rgba(255,255,255,.02);}
+    table.ctt td.slot-td{text-align:center;padding:6px;vertical-align:middle;border-right:1px solid var(--border);background:var(--bg3);}
+    table.ctt .slot-num{display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:50%;font-size:.72rem;font-weight:700;color:#fff;}
+    table.ctt td.time-td{padding:8px 10px;vertical-align:middle;border-right:1px solid var(--border);background:var(--bg3);text-align:center;}
+    table.ctt .time-main{font-family:'DM Mono',monospace;font-size:.72rem;font-weight:600;color:var(--accent);display:block;}
+    table.ctt .time-end{font-family:'DM Mono',monospace;font-size:.62rem;color:var(--text3);display:block;}
+
+    table.ctt td.subj-td{padding:7px 10px;vertical-align:middle;border-right:1px solid var(--border);min-width:110px;}
+    table.ctt td.subj-td:last-child{border-right:none;}
+    .subj-inner{display:flex;align-items:center;gap:7px;}
+    .subj-emoji{width:26px;height:26px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;}
+    .subj-text{font-size:.8rem;font-weight:600;color:var(--text);line-height:1.3;}
+    .subj-teacher{font-size:.65rem;color:var(--text2);margin-top:1px;}
+    .empty-subj{color:var(--text3);font-size:.75rem;text-align:center;padding:8px;}
+
+    /* notes & motivational */
+    .ctt-footer{display:grid;grid-template-columns:1fr 1fr 1fr;border-top:2px solid var(--navy);background:var(--bg2);}
+    .ctt-footer-box{padding:16px 18px;border-right:1px solid var(--border);}
+    .ctt-footer-box:last-child{border-right:none;}
+    .ctt-footer-title{font-size:.7rem;font-weight:700;color:var(--navy2);text-transform:uppercase;letter-spacing:.8px;background:rgba(45,84,148,.2);padding:4px 10px;border-radius:5px;margin-bottom:10px;display:inline-block;}
+    .ctt-note-item{display:flex;align-items:flex-start;gap:7px;margin-bottom:6px;}
+    .ctt-check{width:16px;height:16px;border-radius:50%;background:var(--navy);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;}
+    .ctt-check svg{width:8px;height:8px;}
+    .ctt-note-text{font-size:.73rem;color:var(--text);line-height:1.4;}
+    .ctt-motivational{text-align:center;display:flex;flex-direction:column;justify-content:center;}
+    .ctt-mot-main{font-family:'Playfair Display',serif;font-size:1rem;font-weight:700;color:var(--accent);margin-bottom:5px;line-height:1.3;}
+    .ctt-mot-sub{font-size:.72rem;color:var(--text2);}
+    .ctt-kumbukumbu{min-height:80px;border:1px dashed var(--border2);border-radius:8px;padding:8px;font-size:.72rem;color:var(--text3);font-style:italic;}
+    .ctt-page-footer{background:var(--navy);padding:9px 20px;display:flex;align-items:center;justify-content:center;}
+    .ctt-page-footer span{font-size:.72rem;color:rgba(255,255,255,.6);font-style:italic;}
+
+    .toast{position:fixed;bottom:20px;right:20px;z-index:9999;background:var(--navy);color:#fff;padding:10px 18px;border-radius:9px;font-size:.82rem;font-weight:500;border:1px solid rgba(255,255,255,.1);box-shadow:0 8px 24px rgba(0,0,0,.4);opacity:0;transform:translateY(8px);transition:opacity .3s,transform .3s;pointer-events:none;}
+    .toast.show{opacity:1;transform:translateY(0);}
+    @media(max-width:640px){.sidebar{display:none;}.main-content{margin-left:0;padding:16px;max-width:100%;}.form-row,.form-row-3,.form-row-4{grid-template-columns:1fr;}.ctt-footer{grid-template-columns:1fr;}.ctt-info-strip{flex-direction:column;}}
+  </style>
+</head>
+<body>
+<div class="dashboard">
+  <aside class="sidebar">
+    <div class="sidebar-header"><h2>SchoolDuty</h2><p>Class Timetables</p></div>
+    <div class="sidebar-user">
+      <div class="name" id="sb-name">Loading…</div>
+      <span class="role-badge" id="sb-role">—</span>
+    </div>
+    <nav class="sidebar-nav">
+      <a href="#" onclick="showView('classes',this)" class="active">🏫 All Classes</a>
+      <a href="timetable.html">📋 Exam Timetable</a>
+      <a href="#" id="back-link">← Dashboard</a>
+    </nav>
+    <div class="sidebar-footer"><button onclick="logout()">Sign Out</button></div>
+  </aside>
+
+  <main class="main-content">
+    <div class="page-header">
+      <h1>🏫 Class Timetables</h1>
+      <p id="page-sub">Class timetables — Ratiba ya Darasa</p>
+    </div>
+    <div id="msg-box"></div>
+
+    <!-- CLASSES LIST VIEW -->
+    <div id="view-classes">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;flex-wrap:wrap;gap:10px">
+        <div style="font-size:.9rem;color:var(--text2)">Select a class to view its timetable</div>
+        <div style="display:flex;gap:8px" id="manage-btns" style="display:none">
+          <button class="btn btn-primary" onclick="openAddClassModal()">＋ Add New Class</button>
+        </div>
+      </div>
+      <div class="classes-grid" id="classes-grid"></div>
+    </div>
+
+    <!-- SINGLE CLASS TIMETABLE VIEW -->
+    <div id="view-single" style="display:none">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:18px;flex-wrap:wrap">
+        <button class="btn btn-secondary btn-sm" onclick="showView('classes')">← All Classes</button>
+        <h2 style="font-family:'Playfair Display',serif;color:var(--text);font-size:1.2rem" id="single-title"></h2>
+        <div style="display:flex;gap:8px;margin-left:auto;flex-wrap:wrap">
+          <button class="btn btn-navy btn-sm" onclick="downloadClassPDF()">
+            <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7,10 12,15 17,10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Download PDF
+          </button>
+          <button class="btn btn-primary btn-sm" id="btn-edit-tt" onclick="openEditModal()" style="display:none">✏️ Edit Timetable</button>
+          <button class="btn btn-danger btn-sm" id="btn-del-class" onclick="deleteCurrentClass()" style="display:none">🗑 Delete Class</button>
+        </div>
+      </div>
+      <div id="single-tt-area"></div>
+    </div>
+  </main>
+</div>
+
+<!-- Add Class Modal -->
+<div id="addClassModal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header"><h3>➕ Create New Class Timetable</h3><button class="modal-close" onclick="closeModal('addClassModal')">&times;</button></div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group"><label>Class Name *</label><input type="text" id="new-class-name" placeholder="e.g., Form 4A, Class 7B"/></div>
+        <div class="form-group"><label>School Name *</label><input type="text" id="new-school-name" placeholder="e.g., Mwanga Secondary School"/></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>Academic Year</label><input type="text" id="new-class-year" placeholder="e.g., 2024/2025"/></div>
+        <div class="form-group"><label>Class Teacher (optional)</label><input type="text" id="new-class-teacher" placeholder="e.g., Mr. Juma"/></div>
+      </div>
+      <div class="form-group">
+        <label>Days of School</label>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px">
+          <label style="display:flex;align-items:center;gap:4px;text-transform:none;letter-spacing:0;font-size:.82rem;cursor:pointer" class="day-check"><input type="checkbox" value="Monday" checked/> Monday</label>
+          <label style="display:flex;align-items:center;gap:4px;text-transform:none;letter-spacing:0;font-size:.82rem;cursor:pointer" class="day-check"><input type="checkbox" value="Tuesday" checked/> Tuesday</label>
+          <label style="display:flex;align-items:center;gap:4px;text-transform:none;letter-spacing:0;font-size:.82rem;cursor:pointer" class="day-check"><input type="checkbox" value="Wednesday" checked/> Wednesday</label>
+          <label style="display:flex;align-items:center;gap:4px;text-transform:none;letter-spacing:0;font-size:.82rem;cursor:pointer" class="day-check"><input type="checkbox" value="Thursday" checked/> Thursday</label>
+          <label style="display:flex;align-items:center;gap:4px;text-transform:none;letter-spacing:0;font-size:.82rem;cursor:pointer" class="day-check"><input type="checkbox" value="Friday" checked/> Friday</label>
+          <label style="display:flex;align-items:center;gap:4px;text-transform:none;letter-spacing:0;font-size:.82rem;cursor:pointer" class="day-check"><input type="checkbox" value="Saturday"/> Saturday</label>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('addClassModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="createClass()">Create Class</button>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Timetable Modal -->
+<div id="editModal" class="modal">
+  <div class="modal-content" style="max-width:700px">
+    <div class="modal-header"><h3 id="edit-modal-title">✏️ Edit Timetable</h3><button class="modal-close" onclick="closeModal('editModal')">&times;</button></div>
+    <div class="modal-body">
+      <div id="edit-modal-body"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('editModal')">Close</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast-el" class="toast"></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+<script>
+const token=localStorage.getItem('sds_token');
+let currentUser=null;
+try{currentUser=JSON.parse(localStorage.getItem('sds_user'));}catch{}
+if(!currentUser||!token)window.location.href='login.html';
+
+document.getElementById('sb-name').textContent=(currentUser && currentUser.full_name)||'—';
+document.getElementById('sb-role').textContent=(currentUser && currentUser.role)||'—';
+
+var canManage=(currentUser && currentUser.role==='academician');
+var backLinks={admin:'admin.html',academician:'academician.html',teacher:'teacher.html',student:'student.html'};
+document.getElementById('back-link').href=backLinks[(currentUser && currentUser.role)]||'login.html';
+
+if(canManage){
+  document.getElementById('manage-btns').style.display='flex';
+  document.getElementById('btn-edit-tt').style.display='';
+  document.getElementById('btn-del-class').style.display='';
+}
+
+function logout(){localStorage.removeItem('sds_token');localStorage.removeItem('sds_user');window.location.href='login.html';}
+function toast(msg){const el=document.getElementById('toast-el');el.textContent=msg;el.className='toast show';setTimeout(()=>el.className='toast',2800);}
+function showAlert(id,msg,type='error'){const el=document.getElementById(id);if(!el)return;el.innerHTML=`<div class="alert alert-${type}">${msg}</div>`;setTimeout(()=>{if(el.firstChild)el.innerHTML='';},5000);}
+function closeModal(id){document.getElementById(id).classList.remove('active');}
+window.onclick=e=>{if(e.target.classList.contains('modal'))e.target.classList.remove('active');}
+function escH(s){return String(s||'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}
+function uid(){return'x'+Math.random().toString(36).slice(2,9);}
+
+// ── STATE ──
+const STORAGE_KEY='sds_class_timetables';
+const DAYS_ORDER=['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+const DAYS_SW={'Monday':'Jumatatu','Tuesday':'Jumanne','Wednesday':'Jumatano','Thursday':'Alhamisi','Friday':'Ijumaa','Saturday':'Jumamosi'};
+const SUBJ_ICONS={kiswahili:'📖',hesabu:'🧮',matematik:'🧮',sayansi:'🔬',fizikia:'⚛️',kemia:'⚗️',baiolojia:'🧬',geografia:'🌍',historia:'🏛️',teknolojia:'💻',it:'💻',english:'🔤',kisasa:'🔤',dini:'🕌',michezo:'🏃',sanaa:'🎨',fasihi:'📚',muziki:'🎵',kilimo:'🌿',maadili:'🤝',default:'📝'};
+const SLOT_COLORS=['#3b82f6','#10b981','#8b5cf6','#f59e0b','#ef4444','#06b6d4','#84cc16','#ec4899'];
+
+function getIcon(s){const k=s.toLowerCase();for(const[kw,v]of Object.entries(SUBJ_ICONS))if(k.includes(kw))return v;return SUBJ_ICONS.default;}
+
+function loadClasses(){
+  try{return JSON.parse(localStorage.getItem(STORAGE_KEY))||[];}catch{return[];}
+}
+function saveClasses(classes){localStorage.setItem(STORAGE_KEY,JSON.stringify(classes));}
+
+let classes=loadClasses();
+let currentClassId=null;
+
+// Seed demo data if empty
+if(!classes.length){
+  classes=[{
+    id:'demo1',name:'Form 4A',schoolName:'Mwanga Secondary School',year:'2024/2025',classTeacher:'Mr. Juma',
+    days:['Monday','Tuesday','Wednesday','Thursday','Friday'],
+    slots:[
+      {id:'s1',time:'07:30–08:10',label:'1',isBreak:false},
+      {id:'s2',time:'08:10–08:50',label:'2',isBreak:false},
+      {id:'s3',time:'08:50–09:10',label:'MAPUMZIKO',isBreak:true,breakName:'Mapumziko'},
+      {id:'s4',time:'09:10–09:50',label:'3',isBreak:false},
+      {id:'s5',time:'09:50–10:30',label:'4',isBreak:false},
+      {id:'s6',time:'10:30–10:50',label:'MAPUMZIKO',isBreak:true,breakName:'Mapumziko'},
+      {id:'s7',time:'10:50–11:30',label:'5',isBreak:false},
+      {id:'s8',time:'11:30–12:10',label:'6',isBreak:false},
+    ],
+    entries:{
+      's1':{'Monday':{subject:'Kiswahili',teacher:'Mwl. Amina'},'Tuesday':{subject:'Hesabu',teacher:'Mwl. Juma'},'Wednesday':{subject:'Sayansi',teacher:'Mwl. Ali'},'Thursday':{subject:'Geografia',teacher:'Mwl. Fatuma'},'Friday':{subject:'Historia',teacher:'Mwl. Said'}},
+      's2':{'Monday':{subject:'Hesabu',teacher:'Mwl. Juma'},'Tuesday':{subject:'Kiswahili',teacher:'Mwl. Amina'},'Wednesday':{subject:'Geografia',teacher:'Mwl. Fatuma'},'Thursday':{subject:'Sayansi',teacher:'Mwl. Ali'},'Friday':{subject:'Michezo',teacher:'Mwl. Baraka'}},
+      's4':{'Monday':{subject:'Sayansi',teacher:'Mwl. Ali'},'Tuesday':{subject:'Geografia',teacher:'Mwl. Fatuma'},'Wednesday':{subject:'Hesabu',teacher:'Mwl. Juma'},'Thursday':{subject:'Kiswahili',teacher:'Mwl. Amina'},'Friday':{subject:'Teknolojia (IT)',teacher:'Mwl. Nguyen'}},
+      's5':{'Monday':{subject:'Geografia',teacher:'Mwl. Fatuma'},'Tuesday':{subject:'Sayansi',teacher:'Mwl. Ali'},'Wednesday':{subject:'Kiswahili',teacher:'Mwl. Amina'},'Thursday':{subject:'Hesabu',teacher:'Mwl. Juma'},'Friday':{subject:'Historia',teacher:'Mwl. Said'}},
+      's7':{'Monday':{subject:'Historia',teacher:'Mwl. Said'},'Tuesday':{subject:'Teknolojia (IT)',teacher:'Mwl. Nguyen'},'Wednesday':{subject:'Sanaa',teacher:'Mwl. Grace'},'Thursday':{subject:'English',teacher:'Mwl. Nguyen'},'Friday':{subject:'Muziki',teacher:'Mwl. Grace'}},
+      's8':{'Monday':{subject:'Teknolojia (IT)',teacher:'Mwl. Nguyen'},'Tuesday':{subject:'Elimu ya Dini',teacher:'Mwl. Omar'},'Wednesday':{subject:'Maadili',teacher:'Mwl. Omar'},'Thursday':{subject:'Michezo',teacher:'Mwl. Baraka'},'Friday':{subject:'Kilimo',teacher:'Mwl. Baraka'}},
+    },
+    notes:['Fika darasani mapema.','Kuja na vifaa vyote vya masomo.','Zingatia muda na ratiba.','Heshimu walimu na wenzako.','Usafi na nidhamu ni muhimu.'],
+    motMain:'Jitayarishe Vizuri, Faulu kwa Uhakika!',motSub:'Kazi Iendelee — Mafanikio ni Lako!'
+  }];
+  saveClasses(classes);
+}
+
+// ── VIEWS ──
+function showView(name,el){
+  document.getElementById('view-classes').style.display=name==='classes'?'':'none';
+  document.getElementById('view-single').style.display=name==='single'?'':'none';
+  document.querySelectorAll('.sidebar-nav a').forEach(a=>a.classList.remove('active'));
+  if(el)el.classList.add('active');
+  if(name==='classes')renderClassesGrid();
+}
+
+function renderClassesGrid(){
+  const grid=document.getElementById('classes-grid');
+  classes=loadClasses();
+  if(!classes.length){grid.innerHTML='<div class="empty-state" style="grid-column:1/-1">No class timetables yet.<br/>'+(canManage?'Click "Add New Class" to create one.':'Contact your academician to create class timetables.')+'</div>';return;}
+  grid.innerHTML=classes.map((c,i)=>`
+    <div class="class-card" onclick="openClass('${c.id}')">
+      <div class="class-card-top">
+        <div class="class-icon" style="background:${SLOT_COLORS[i%SLOT_COLORS.length]}22;color:${SLOT_COLORS[i%SLOT_COLORS.length]}">🏫</div>
+        <div>
+          <div class="class-name">${escH(c.name)}</div>
+          <div class="class-meta">${escH(c.schoolName||'—')}</div>
+        </div>
+      </div>
+      <div class="class-meta" style="margin-top:4px">
+        ${c.days.length} days · ${Object.values(c.entries||{}).reduce((a,d)=>a+Object.keys(d).length,0)} classes<br/>
+        ${c.classTeacher?'Class Teacher: '+c.classTeacher:''}
+      </div>
+      <div class="class-actions">
+        <button class="btn btn-navy btn-sm" onclick="event.stopPropagation();openClass('${c.id}')">View</button>
+        ${canManage?`<button class="btn btn-primary btn-sm" onclick="event.stopPropagation();openClass('${c.id}');setTimeout(openEditModal,200)">Edit</button>`:''}
+      </div>
+    </div>`).join('');
+}
+
+function openClass(id){
+  currentClassId=id;
+  const cls=classes.find(c=>c.id===id);
+  if(!cls)return;
+  document.getElementById('single-title').textContent=cls.name+' — '+cls.schoolName;
+  document.getElementById('single-tt-area').innerHTML=renderClassTimetable(cls);
+  showView('single');
+}
+
+// ── RENDER CLASS TIMETABLE (like screenshot) ──
+function renderClassTimetable(cls){
+  const days=cls.days||DAYS_ORDER.slice(0,5);
+  const slots=cls.slots||[];
+  const entries=cls.entries||{};
+  const totalSlots=slots.filter(s=>!s.isBreak).length;
+  const totalSubjs=Object.values(entries).reduce((a,d)=>a+Object.keys(d).length,0);
+
+  // Day columns
+  const dayHeaders=days.map(d=>`<th class="th-day" style="border-right:1px solid rgba(255,255,255,.08)">${DAYS_SW[d]||d}</th>`).join('');
+
+  // Rows
+  let rowsHtml='';
+  slots.forEach((slot,si)=>{
+    if(slot.isBreak){
+      rowsHtml+=`<tr class="break-row"><td colspan="${days.length+2}">
+        <div class="break-label">☕ ${escH(slot.breakName||'MAPUMZIKO')} &nbsp;·&nbsp; ${escH(slot.time)}</div>
+      </td></tr>`;
+      return;
+    }
+    const color=SLOT_COLORS[parseInt(slot.label)-1]||SLOT_COLORS[0];
+    const [tStart,tEnd]=(slot.time||'').split('–');
+    const dayCells=days.map(d=>{
+      var e=(entries[slot.id] && entries[slot.id][d]) ? entries[slot.id][d] : null;
+      if(e){
+        return`<td class="subj-td">
+          <div class="subj-inner">
+            <div class="subj-emoji" style="background:${color}18">${getIcon(e.subject)}</div>
+            <div>
+              <div class="subj-text">${escH(e.subject)}</div>
+              ${e.teacher?`<div class="subj-teacher">${escH(e.teacher)}</div>`:''}
+            </div>
+          </div>
+        </td>`;
+      }
+      return`<td class="subj-td"><div class="empty-subj">—</div></td>`;
+    }).join('');
+    rowsHtml+=`<tr class="data-row">
+      <td class="slot-td"><div class="slot-num" style="background:${color}">${escH(slot.label)}</div></td>
+      <td class="time-td"><span class="time-main">${escH((tStart&&tStart.trim())||slot.time)}</span><span class="time-end">${escH((tEnd&&tEnd.trim())||'')}</span></td>
+      ${dayCells}
+    </tr>`;
+  });
+
+  // Notes section
+  const noteItems=(cls.notes||[]).map(n=>`
+    <div class="ctt-note-item">
+      <div class="ctt-check"><svg viewBox="0 0 10 10" fill="none" stroke="#f5a623" stroke-width="2.5"><polyline points="1,5 3.5,8 9,2"/></svg></div>
+      <span class="ctt-note-text">${escH(n)}</span>
+    </div>`).join('');
+
+  return`
+    <div class="ctt-page" id="ctt-printable">
+      <div class="ctt-banner">
+        <div class="ctt-title">Ratiba ya Darasa</div>
+        <div class="ctt-class-label">— ${escH(cls.name)} · ${escH(cls.schoolName)} —</div>
+        <div class="ctt-tagline">Mipangilio Bora, Mafanikio Bora · ${cls.year||''}</div>
+        <div class="ctt-info-strip">
+          <div class="ctt-info-item"><div class="ctt-info-icon">📅</div><div class="ctt-info-label">Muda wa Masomo</div><div class="ctt-info-val">${days.map(d=>DAYS_SW[d]).join(', ')}</div></div>
+          <div class="ctt-info-item"><div class="ctt-info-icon">⏱</div><div class="ctt-info-label">Vipindi</div><div class="ctt-info-val">${totalSlots} kwa siku</div></div>
+          <div class="ctt-info-item"><div class="ctt-info-icon">☕</div><div class="ctt-info-icon">Mapumziko</div><div class="ctt-info-val">Kulingana na ratiba</div></div>
+          <div class="ctt-info-item"><div class="ctt-info-icon">📚</div><div class="ctt-info-label">Jiandae Vizuri</div><div class="ctt-info-val">Kwa Kila Daraja</div></div>
+        </div>
+      </div>
+      <div class="ctt-toolbar no-print">
+        <div class="ctt-day-tabs" id="ctt-day-tabs">
+          <button class="ctt-day-tab active" style="background:var(--navy);color:#fff;border-color:var(--navy)" onclick="filterDay('all',this)">All Days</button>
+          ${days.map(d=>`<button class="ctt-day-tab" onclick="filterDay('${d}',this)">${DAYS_SW[d]||d}</button>`).join('')}
+        </div>
+        <div style="font-size:.75rem;color:var(--text2)">${cls.classTeacher?'Mwalimu: '+cls.classTeacher:''}</div>
+      </div>
+      <div class="ctt-table-wrap">
+        <table class="ctt" id="ctt-table">
+          <thead><tr>
+            <th class="slot-col" style="border-right:1px solid rgba(255,255,255,.08)">#</th>
+            <th class="time-col" style="border-right:1px solid rgba(255,255,255,.08)">Muda</th>
+            ${dayHeaders}
+          </tr></thead>
+          <tbody>${rowsHtml}</tbody>
+        </table>
+      </div>
+      <div class="ctt-footer">
+        <div class="ctt-footer-box">
+          <div class="ctt-footer-title">Maelekezo Muhimu</div>
+          ${noteItems}
+        </div>
+        <div class="ctt-footer-box ctt-motivational">
+          <div class="ctt-mot-main">${escH(cls.motMain||'Jitayarishe Vizuri, Faulu kwa Uhakika!')}</div>
+          <div class="ctt-mot-sub">${escH(cls.motSub||'Kazi Iendelee — Mafanikio ni Lako!')}</div>
+        </div>
+        <div class="ctt-footer-box">
+          <div class="ctt-footer-title">Kumbukumbu</div>
+          <div class="ctt-kumbukumbu"></div>
+        </div>
+      </div>
+      <div class="ctt-page-footer"><span>★ Mipangilio mzuri ni hatua ya kwanza menuju mafanikio. ★</span></div>
+    </div>`;
+}
+
+function filterDay(day,btn){
+  document.querySelectorAll('.ctt-day-tab').forEach(b=>{b.style.background='';b.style.borderColor='';b.style.color='';b.classList.remove('active');});
+  btn.classList.add('active');btn.style.background='var(--navy)';btn.style.color='#fff';btn.style.borderColor='var(--navy)';
+  const table=document.getElementById('ctt-table');
+  if(!table)return;
+  const cls=classes.find(c=>c.id===currentClassId);
+  if(!cls)return;
+  const days=cls.days||[];
+  const ths=table.querySelectorAll('thead th');
+  const tds=table.querySelectorAll('tbody td.subj-td');
+  if(day==='all'){ths.forEach(t=>t.style.display='');tds.forEach(t=>t.style.display='');}
+  else{
+    ths.forEach((th,i)=>{if(i<2)return;const d=days[i-2];th.style.display=d===day?'':'none';});
+    table.querySelectorAll('tbody tr').forEach(tr=>{
+      const cells=tr.querySelectorAll('td.subj-td');
+      cells.forEach((td,i)=>{td.style.display=days[i]===day?'':'none';});
+    });
+  }
+}
+
+// ── CREATE CLASS ──
+function openAddClassModal(){document.getElementById('addClassModal').classList.add('active');}
+function createClass(){
+  const name=document.getElementById('new-class-name').value.trim();
+  const school=document.getElementById('new-school-name').value.trim();
+  const year=document.getElementById('new-class-year').value.trim();
+  const teacher=document.getElementById('new-class-teacher').value.trim();
+  const days=[...document.querySelectorAll('.day-check input:checked')].map(cb=>cb.value);
+  if(!name||!school){showAlert('msg-box','Class name and school name are required.');return;}
+  if(!days.length){showAlert('msg-box','Select at least one school day.');return;}
+  const newClass={
+    id:uid(),name,schoolName:school,year,classTeacher:teacher,days,
+    slots:[
+      {id:'s1',time:'07:30–08:10',label:'1',isBreak:false},
+      {id:'s2',time:'08:10–08:50',label:'2',isBreak:false},
+      {id:'s3',time:'08:50–09:10',label:'MAPUMZIKO',isBreak:true,breakName:'Mapumziko'},
+      {id:'s4',time:'09:10–09:50',label:'3',isBreak:false},
+      {id:'s5',time:'09:50–10:30',label:'4',isBreak:false},
+      {id:'s6',time:'10:30–10:50',label:'MAPUMZIKO',isBreak:true,breakName:'Mapumziko'},
+      {id:'s7',time:'10:50–11:30',label:'5',isBreak:false},
+      {id:'s8',time:'11:30–12:10',label:'6',isBreak:false},
+    ],
+    entries:{},
+    notes:['Fika darasani mapema.','Kuja na vifaa vyote vya masomo.','Zingatia muda na ratiba.','Heshimu walimu na wenzako.','Usafi na nidhamu ni muhimu.'],
+    motMain:'Jitayarishe Vizuri, Faulu kwa Uhakika!',motSub:'Kazi Iendelee — Mafanikio ni Lako!'
+  };
+  classes.push(newClass);saveClasses(classes);
+  closeModal('addClassModal');
+  toast('Class created: '+name);
+  openClass(newClass.id);
+}
+
+// ── EDIT MODAL ──
+function openEditModal(){
+  const cls=classes.find(c=>c.id===currentClassId);
+  if(!cls){showAlert('msg-box','No class selected');return;}
+  document.getElementById('edit-modal-title').textContent='✏️ Edit '+cls.name;
+  renderEditModalBody(cls);
+  document.getElementById('editModal').classList.add('active');
+}
+
+function renderEditModalBody(cls){
+  const days=cls.days||[];
+  const slots=cls.slots||[];
+  const entries=cls.entries||{};
+
+  // Tab per slot for editing entries
+  let slotsHtml=slots.filter(s=>!s.isBreak).map(slot=>{
+    const rowCells=days.map(d=>{
+      var e=(entries[slot.id] && entries[slot.id][d]) ? entries[slot.id][d] : {};
+      return`<td style="padding:5px;border-right:1px solid var(--border)">
+        <input type="text" value="${escH(e.subject||'')}" placeholder="Subject" onchange="updateEntry('${slot.id}','${d}','subject',this.value)" style="width:100%;padding:5px 7px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:.72rem;margin-bottom:3px"/>
+        <input type="text" value="${escH(e.teacher||'')}" placeholder="Teacher" onchange="updateEntry('${slot.id}','${d}','teacher',this.value)" style="width:100%;padding:5px 7px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;color:var(--text2);font-size:.68rem"/>
+      </td>`;
+    }).join('');
+    return`<tr style="border-bottom:1px solid var(--border)">
+      <td style="padding:6px 10px;background:var(--bg3);border-right:1px solid var(--border);text-align:center;font-size:.72rem;color:var(--accent);font-weight:700;white-space:nowrap">${escH(slot.label)}<br/><span style="color:var(--text3);font-weight:400;font-size:.65rem">${escH(slot.time)}</span></td>
+      ${rowCells}
+    </tr>`;
+  }).join('');
+
+  const dayThs=days.map(d=>`<th style="padding:7px 8px;background:var(--navy);color:#fff;font-size:.72rem;border-right:1px solid rgba(255,255,255,.1)">${DAYS_SW[d]||d}</th>`).join('');
+
+  // Notes edit
+  let notesHtml=`
+    <div class="divider"></div>
+    <div style="font-size:.82rem;font-weight:600;color:var(--accent);margin-bottom:8px">📝 Notes & Motivational Text</div>
+    <div class="form-group"><label>Notes (one per line)</label>
+      <textarea id="edit-notes-ta" rows="4">${(cls.notes||[]).join('\n')}</textarea>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Motivational Headline</label><input type="text" id="edit-mot-main" value="${escH(cls.motMain||'')}"/></div>
+      <div class="form-group"><label>Sub-tagline</label><input type="text" id="edit-mot-sub" value="${escH(cls.motSub||'')}"/></div>
+    </div>
+    <button class="btn btn-success btn-sm" onclick="saveClassNotes()">Save Notes & Text</button>`;
+
+  // Add slot form
+  let addSlotHtml=`
+    <div class="divider"></div>
+    <div style="font-size:.82rem;font-weight:600;color:var(--accent);margin-bottom:8px">⏱ Add Time Slot</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end">
+      <div style="flex:1;min-width:100px"><label>Label</label><input type="text" id="new-slot-label" placeholder="e.g., 7 or MAPUMZIKO"/></div>
+      <div style="flex:2;min-width:140px"><label>Time</label><input type="text" id="new-slot-time" placeholder="e.g., 12:10–12:50"/></div>
+      <div style="display:flex;align-items:center;gap:6px;margin-bottom:1px"><label style="display:flex;align-items:center;gap:4px;text-transform:none;letter-spacing:0;font-size:.82rem"><input type="checkbox" id="new-slot-break"/> Break</label></div>
+      <button class="btn btn-primary btn-sm" onclick="addSlot()">Add Slot</button>
+    </div>`;
+
+  document.getElementById('edit-modal-body').innerHTML=`
+    <div style="font-size:.8rem;color:var(--text2);margin-bottom:12px">Edit subjects and teachers for each period. Changes save immediately.</div>
+    <div style="overflow-x:auto;border-radius:8px;border:1px solid var(--border)">
+      <table style="width:100%;border-collapse:collapse;min-width:500px">
+        <thead><tr><th style="padding:7px 10px;background:var(--navy);color:#fff;font-size:.72px;border-right:1px solid rgba(255,255,255,.1)">Slot</th>${dayThs}</tr></thead>
+        <tbody>${slotsHtml}</tbody>
+      </table>
+    </div>
+    ${addSlotHtml}${notesHtml}`;
+}
+
+function updateEntry(slotId,day,field,value){
+  const cls=classes.find(c=>c.id===currentClassId);
+  if(!cls)return;
+  if(!cls.entries[slotId])cls.entries[slotId]={};
+  if(!cls.entries[slotId][day])cls.entries[slotId][day]={};
+  cls.entries[slotId][day][field]=value;
+  saveClasses(classes);
+  // Refresh the timetable view in background
+  document.getElementById('single-tt-area').innerHTML=renderClassTimetable(cls);
+}
+
+function addSlot(){
+  const cls=classes.find(c=>c.id===currentClassId);
+  if(!cls)return;
+  const label=document.getElementById('new-slot-label').value.trim();
+  const time=document.getElementById('new-slot-time').value.trim();
+  const isBreak=document.getElementById('new-slot-break').checked;
+  if(!label||!time){showAlert('msg-box','Fill in label and time.');return;}
+  cls.slots.push({id:uid(),label,time,isBreak,breakName:isBreak?label:undefined});
+  saveClasses(classes);
+  toast('Slot added: '+label);
+  document.getElementById('new-slot-label').value='';
+  document.getElementById('new-slot-time').value='';
+  renderEditModalBody(cls);
+  document.getElementById('single-tt-area').innerHTML=renderClassTimetable(cls);
+}
+
+function saveClassNotes(){
+  const cls=classes.find(c=>c.id===currentClassId);
+  if(!cls)return;
+  cls.notes=document.getElementById('edit-notes-ta').value.split('\n').map(l=>l.trim()).filter(Boolean);
+  cls.motMain=document.getElementById('edit-mot-main').value.trim()||cls.motMain;
+  cls.motSub=document.getElementById('edit-mot-sub').value.trim()||cls.motSub;
+  saveClasses(classes);
+  toast('Saved!');
+  document.getElementById('single-tt-area').innerHTML=renderClassTimetable(cls);
+}
+
+function deleteCurrentClass(){
+  const cls=classes.find(c=>c.id===currentClassId);
+  if(!cls||!confirm(`Delete class "${cls.name}"? This cannot be undone.`))return;
+  classes=classes.filter(c=>c.id!==currentClassId);
+  saveClasses(classes);
+  toast('Class deleted');
+  showView('classes');
+}
+
+// ── PDF DOWNLOAD ──
+function downloadClassPDF(){
+  const cls=classes.find(c=>c.id===currentClassId);
+  if(!cls){toast('No class loaded');return;}
+  if(typeof window.jspdf==='undefined'){toast('PDF library loading…');return;}
+  const{jsPDF}=window.jspdf;
+  const doc=new jsPDF({orientation:'landscape',unit:'mm',format:'a4'});
+  const PW=297,PH=210,ML=10,MR=10;const CW=PW-ML-MR;
+  const days=cls.days||[];
+  const slots=cls.slots||[];
+  const entries=cls.entries||{};
+
+  // ── HEADER ──
+  doc.setFillColor(26,58,107);doc.rect(0,0,PW,28,'F');
+  doc.setFillColor(245,166,35,40);doc.circle(PW-15,5,20,'F');
+  doc.setFillColor(59,130,246,25);doc.circle(12,24,14,'F');
+  doc.setTextColor(255,255,255);
+  doc.setFont('helvetica','bold');doc.setFontSize(20);
+  doc.text('RATIBA YA DARASA',PW/2,10,{align:'center'});
+  doc.setFontSize(11);doc.text(cls.name+' — '+cls.schoolName,PW/2,17,{align:'center'});
+  doc.setFont('helvetica','italic');doc.setFontSize(8);doc.setTextColor(200,215,240);
+  doc.text('— Mipangilio Bora, Mafanikio Bora —'+(cls.year?' · '+cls.year:''),PW/2,23,{align:'center'});
+
+  // Info strip
+  doc.setFillColor(45,84,148);doc.rect(0,28,PW,8,'F');
+  doc.setFont('helvetica','normal');doc.setFontSize(8);doc.setTextColor(200,220,255);
+  const infoParts=['📅 Muda wa Masomo: '+days.map(d=>DAYS_SW[d]).join(', '),'⏱ Vipindi: '+slots.filter(s=>!s.isBreak).length+' kwa siku'];
+  if(cls.classTeacher)infoParts.push('👤 '+cls.classTeacher);
+  doc.text(infoParts.join('   ·   '),PW/2,33.5,{align:'center'});
+
+  let yPos=40;
+
+  // ── TABLE ──
+  const colW=Math.min(32,(CW-30)/days.length);
+  const colStyles={0:{cellWidth:10,halign:'center',fontStyle:'bold'},1:{cellWidth:20,halign:'center'}};
+  days.forEach((_,i)=>colStyles[i+2]={cellWidth:colW});
+
+  const headRow=['#','Muda',...days.map(d=>DAYS_SW[d]||d)];
+  const tableRows=[];
+  slots.forEach(slot=>{
+    if(slot.isBreak){
+      tableRows.push([{content:`☕ ${slot.breakName||'MAPUMZIKO'} — ${slot.time}`,colSpan:days.length+2,styles:{halign:'center',fillColor:[230,240,255],textColor:[26,58,107],fontStyle:'bold',fontSize:8}}]);
+      return;
+    }
+    const row=[slot.label,slot.time];
+    days.forEach(d=>{
+      var e=(entries[slot.id] && entries[slot.id][d]) ? entries[slot.id][d] : null;
+      row.push(e?e.subject+(e.teacher?'\n'+e.teacher:''):'');
+    });
+    tableRows.push(row);
+  });
+
+  doc.autoTable({
+    startY:yPos,head:[headRow],body:tableRows,
+    margin:{left:ML,right:MR},
+    headStyles:{fillColor:[26,58,107],textColor:[255,255,255],fontSize:8,fontStyle:'bold',halign:'center',cellPadding:3},
+    bodyStyles:{fontSize:8,textColor:[20,20,30],cellPadding:3,lineColor:[180,200,220],lineWidth:0.3},
+    alternateRowStyles:{fillColor:[245,248,255]},
+    columnStyles:colStyles,
+    didParseCell(data){
+      if(data.section==='body'&&data.row.raw[0] && data.row.raw[0].content===undefined){
+        const subj=String(data.cell.raw||'');
+        if(data.column.index>=2&&subj){
+          const colors=[[230,241,251],[232,248,240],[250,238,218],[240,234,255],[253,236,231],[225,245,254]];
+          data.cell.styles.fillColor=colors[(data.column.index-2)%colors.length];
+        }
+      }
+    },theme:'grid'
+  });
+  yPos=doc.lastAutoTable.finalY+6;
+
+  // ── FOOTER SECTION (2 columns: Notes + Kumbukumbu) ──
+  const footH=Math.min(50,PH-yPos-15);
+  if(footH>15){
+    const footW=CW/2;
+    // Notes box
+    doc.setFillColor(248,250,255);doc.setDrawColor(180,200,230);
+    doc.rect(ML,yPos,footW,footH,'FD');
+    doc.setFillColor(26,58,107);doc.rect(ML,yPos,footW,8,'F');
+    doc.setTextColor(255,255,255);doc.setFont('helvetica','bold');doc.setFontSize(8);
+    doc.text('MAELEKEZO MUHIMU',ML+footW/2,yPos+5.5,{align:'center'});
+    doc.setTextColor(20,20,30);doc.setFont('helvetica','normal');doc.setFontSize(7.5);
+    (cls.notes||[]).slice(0,6).forEach((note,i)=>{
+      const ny=yPos+12+i*6;
+      doc.setFillColor(26,58,107);doc.circle(ML+4,ny-1.5,2,'F');
+      doc.setTextColor(255,255,255);doc.text('✓',ML+2.8,ny-0.2);
+      doc.setTextColor(20,20,30);doc.text(note,ML+8,ny);
+    });
+    // Kumbukumbu box
+    const kx=ML+footW;
+    doc.setFillColor(248,250,255);doc.setDrawColor(180,200,230);
+    doc.rect(kx,yPos,footW,footH,'FD');
+    doc.setFillColor(26,58,107);doc.rect(kx,yPos,footW,8,'F');
+    doc.setTextColor(255,255,255);doc.setFont('helvetica','bold');doc.setFontSize(8);
+    doc.text('KUMBUKUMBU',kx+footW/2,yPos+5.5,{align:'center'});
+    yPos+=footH+4;
+  }
+
+  // ── PAGE FOOTER ──
+  doc.setFillColor(26,58,107);doc.rect(0,PH-10,PW,10,'F');
+  doc.setTextColor(180,200,240);doc.setFont('helvetica','italic');doc.setFontSize(7.5);
+  doc.text('★ Mipangilio mzuri ni hatua ya kwanza menuju mafanikio. ★',ML,PH-4);
+  doc.setFont('helvetica','normal');doc.setTextColor(200,215,255);
+  doc.text(cls.name+' — '+cls.schoolName,PW-MR,PH-4,{align:'right'});
+
+  const fname=(cls.name||'class').replace(/\s+/g,'-').toLowerCase()+'-timetable.pdf';
+  doc.save(fname);
+  toast('✅ PDF downloaded: '+cls.name);
+}
+
+// ── INIT ──
+showView('classes');
+</script>
+</body>
+</html>

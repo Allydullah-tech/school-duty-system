@@ -1,0 +1,1655 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Exam Timetable — SchoolDuty</title>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=Playfair+Display:wght@700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+    <style>
+         :root {
+            --bg: #0a0e1a;
+            --bg2: #111827;
+            --bg3: #1a2235;
+            --border: #2a3a52;
+            --border2: #3a4f6a;
+            --text: #e8eef7;
+            --text2: #8fa3bf;
+            --text3: #5a7290;
+            --accent: #f5a623;
+            --blue: #3b82f6;
+            --navy: #1a3a6b;
+            --navy2: #2d5494;
+            --green: #34d399;
+            --red: #f87171;
+            --sidebar-w: 240px;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            font-size: 14px;
+        }
+        
+         ::-webkit-scrollbar {
+            width: 5px;
+            height: 5px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: var(--bg2);
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: var(--border2);
+            border-radius: 3px;
+        }
+        
+        .dashboard {
+            display: flex;
+            min-height: 100vh;
+        }
+        
+        .sidebar {
+            width: var(--sidebar-w);
+            min-width: var(--sidebar-w);
+            background: var(--bg2);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100vh;
+            overflow-y: auto;
+            z-index: 100;
+        }
+        
+        .sidebar-header {
+            padding: 22px 20px 16px;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        .sidebar-header h2 {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            gap: 9px;
+        }
+        
+        .sidebar-header h2::before {
+            content: 'S';
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 28px;
+            height: 28px;
+            background: linear-gradient(135deg, var(--accent), #e8941a);
+            border-radius: 7px;
+            font-size: .85rem;
+            font-weight: 700;
+            color: #fff;
+            flex-shrink: 0;
+        }
+        
+        .sidebar-header p {
+            font-size: .7rem;
+            color: var(--text3);
+            margin-top: 3px;
+            margin-left: 37px;
+        }
+        
+        .sidebar-user {
+            padding: 14px 20px;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        .sidebar-user .name {
+            font-weight: 600;
+            font-size: .85rem;
+            color: var(--text);
+            margin-bottom: 4px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .role-badge {
+            display: inline-block;
+            padding: 2px 9px;
+            border-radius: 20px;
+            font-size: .65rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: .5px;
+            background: rgba(167, 139, 250, .15);
+            color: #a78bfa;
+        }
+        
+        .sidebar-nav {
+            flex: 1;
+            padding: 12px 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+        
+        .sidebar-nav a {
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            padding: 9px 12px;
+            border-radius: 9px;
+            text-decoration: none;
+            color: var(--text2);
+            font-size: .82rem;
+            font-weight: 500;
+            transition: all .15s;
+        }
+        
+        .sidebar-nav a:hover {
+            background: var(--bg3);
+            color: var(--text);
+        }
+        
+        .sidebar-nav a.active {
+            background: rgba(245, 166, 35, .12);
+            color: var(--accent);
+            font-weight: 600;
+        }
+        
+        .sidebar-footer {
+            padding: 16px 20px;
+            border-top: 1px solid var(--border);
+        }
+        
+        .sidebar-footer button {
+            width: 100%;
+            padding: 9px;
+            background: var(--bg3);
+            border: 1px solid var(--border);
+            border-radius: 9px;
+            color: var(--text2);
+            font-family: 'DM Sans', sans-serif;
+            font-size: .8rem;
+            cursor: pointer;
+            transition: all .2s;
+        }
+        
+        .sidebar-footer button:hover {
+            border-color: var(--red);
+            color: var(--red);
+        }
+        
+        .main-content {
+            flex: 1;
+            margin-left: var(--sidebar-w);
+            padding: 28px 32px;
+            min-height: 100vh;
+            max-width: calc(100vw - var(--sidebar-w));
+        }
+        
+        .page-header {
+            margin-bottom: 22px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        .page-header h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 3px;
+        }
+        
+        .page-header p {
+            color: var(--text2);
+            font-size: .83rem;
+        }
+        
+        .toolbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 18px;
+        }
+        
+        .toolbar-left {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        .toolbar-right {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 9px 18px;
+            border-radius: 9px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: .82rem;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            text-decoration: none;
+            transition: all .2s;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent), #e8941a);
+            color: #fff;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 5px 14px rgba(245, 166, 35, .3);
+        }
+        
+        .btn-secondary {
+            background: var(--bg3);
+            color: var(--text2);
+            border: 1px solid var(--border);
+        }
+        
+        .btn-secondary:hover {
+            border-color: var(--border2);
+            color: var(--text);
+        }
+        
+        .btn-navy {
+            background: var(--navy);
+            color: #fff;
+        }
+        
+        .btn-navy:hover {
+            background: var(--navy2);
+            transform: translateY(-1px);
+        }
+        
+        .btn-success {
+            background: linear-gradient(135deg, var(--green), #10b981);
+            color: #fff;
+        }
+        
+        .btn-danger {
+            background: linear-gradient(135deg, var(--red), #ef4444);
+            color: #fff;
+        }
+        
+        .btn-sm {
+            padding: 6px 13px;
+            font-size: .75rem;
+            border-radius: 7px;
+        }
+        
+        .btn:disabled {
+            opacity: .45;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .card {
+            background: var(--bg2);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+        
+        .card-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+        }
+        
+        .card-header h3 {
+            font-family: 'Playfair Display', serif;
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--text);
+        }
+        
+        .card-header p {
+            font-size: .75rem;
+            color: var(--text2);
+            margin-top: 2px;
+        }
+        
+        .card-body {
+            padding: 18px 20px;
+        }
+        
+        .alert {
+            padding: 11px 15px;
+            border-radius: 9px;
+            font-size: .82rem;
+            margin-bottom: 14px;
+        }
+        
+        .alert-error {
+            background: rgba(248, 113, 113, .1);
+            color: #fca5a5;
+            border-left: 3px solid var(--red);
+        }
+        
+        .alert-success {
+            background: rgba(52, 211, 153, .1);
+            color: #6ee7b7;
+            border-left: 3px solid var(--green);
+        }
+        
+        .alert-info {
+            background: rgba(59, 130, 246, .1);
+            color: #93c5fd;
+            border-left: 3px solid var(--blue);
+        }
+        
+        .form-group {
+            margin-bottom: 14px;
+        }
+        
+        label {
+            display: block;
+            font-size: .7rem;
+            font-weight: 600;
+            color: var(--text2);
+            text-transform: uppercase;
+            letter-spacing: .6px;
+            margin-bottom: 5px;
+        }
+        
+        input,
+        select,
+        textarea {
+            width: 100%;
+            padding: 9px 13px;
+            background: var(--bg3);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text);
+            font-family: 'DM Sans', sans-serif;
+            font-size: .86rem;
+            outline: none;
+            transition: border-color .2s, box-shadow .2s;
+        }
+        
+        input:focus,
+        select:focus,
+        textarea:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(245, 166, 35, .1);
+        }
+        
+        select option {
+            background: var(--bg2);
+        }
+        
+        textarea {
+            resize: vertical;
+            min-height: 70px;
+        }
+        
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+        
+        .form-row-3 {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 12px;
+        }
+        
+        .divider {
+            height: 1px;
+            background: var(--border);
+            margin: 16px 0;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 40px 24px;
+            color: var(--text3);
+            font-size: .85rem;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: var(--text3);
+            font-size: .85rem;
+        }
+        
+        .tabs {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+        }
+        
+        .tab-btn {
+            padding: 6px 14px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background: var(--bg3);
+            color: var(--text2);
+            font-family: 'DM Sans', sans-serif;
+            font-size: .75rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all .15s;
+        }
+        
+        .tab-btn:hover {
+            border-color: var(--border2);
+            color: var(--text);
+        }
+        
+        .tab-btn.active {
+            background: rgba(245, 166, 35, .12);
+            border-color: var(--accent);
+            color: var(--accent);
+            font-weight: 600;
+        }
+        
+        .tt-school-banner {
+            background: linear-gradient(135deg, var(--navy), #0f2a55);
+            border-radius: 12px 12px 0 0;
+            padding: 20px 24px 18px;
+            text-align: center;
+            border: 1px solid var(--border);
+            border-bottom: none;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .tt-school-banner::before {
+            content: '';
+            position: absolute;
+            top: -30px;
+            right: -30px;
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: rgba(245, 166, 35, .07);
+        }
+        
+        .tt-school-name-input {
+            background: transparent;
+            border: none;
+            border-bottom: 1px solid rgba(255, 255, 255, .2);
+            color: #fff;
+            font-family: 'Playfair Display', serif;
+            font-size: 1.1rem;
+            font-weight: 700;
+            text-align: center;
+            width: 100%;
+            outline: none;
+            padding: 2px 8px;
+            transition: border-color .2s;
+        }
+        
+        .tt-school-name-input:focus {
+            border-bottom-color: var(--accent);
+        }
+        
+        .tt-term-name-input {
+            background: transparent;
+            border: none;
+            border-bottom: 1px solid rgba(245, 166, 35, .3);
+            color: var(--accent);
+            font-family: 'DM Sans', sans-serif;
+            font-size: .88rem;
+            font-weight: 600;
+            text-align: center;
+            width: 100%;
+            outline: none;
+            padding: 2px 8px;
+            margin-top: 6px;
+            transition: border-color .2s;
+        }
+        
+        .tt-term-name-input:focus {
+            border-bottom-color: var(--accent);
+        }
+        
+        .tt-sub-tagline {
+            font-size: .7rem;
+            color: rgba(255, 255, 255, .45);
+            margin-top: 6px;
+            font-style: italic;
+            letter-spacing: .5px;
+        }
+        
+        .tt-info-pills {
+            display: flex;
+            justify-content: center;
+            gap: 14px;
+            flex-wrap: wrap;
+            margin-top: 14px;
+        }
+        
+        .tt-info-pill {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(255, 255, 255, .07);
+            border: 1px solid rgba(255, 255, 255, .1);
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: .68rem;
+            color: rgba(255, 255, 255, .7);
+        }
+        
+        .tt-info-pill span {
+            color: var(--accent);
+            font-weight: 600;
+        }
+        
+        .week-block {
+            margin-bottom: 14px;
+        }
+        
+        .week-header-bar {
+            background: linear-gradient(135deg, var(--navy2), var(--navy));
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 11px 18px;
+            gap: 10px;
+            border-radius: 10px 10px 0 0;
+        }
+        
+        .week-header-bar h4 {
+            font-size: .9rem;
+            font-weight: 700;
+            color: #fff;
+        }
+        
+        .week-header-bar .week-dates {
+            font-size: .72rem;
+            color: rgba(255, 255, 255, .65);
+            font-family: 'DM Mono', monospace;
+        }
+        
+        .week-table-wrap {
+            border: 1px solid var(--border);
+            border-top: none;
+            border-radius: 0 0 10px 10px;
+            overflow: hidden;
+        }
+        
+        table.tt {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        table.tt thead tr {
+            background: rgba(45, 84, 148, .6);
+        }
+        
+        table.tt thead th {
+            padding: 8px 14px;
+            font-size: .68rem;
+            font-weight: 700;
+            color: rgba(255, 255, 255, .7);
+            text-transform: uppercase;
+            letter-spacing: .6px;
+            text-align: left;
+            border-right: 1px solid var(--border);
+        }
+        
+        table.tt thead th:last-child {
+            border-right: none;
+        }
+        
+        table.tt tbody tr {
+            border-bottom: 1px solid var(--border);
+            transition: background .12s;
+        }
+        
+        table.tt tbody tr:last-child {
+            border-bottom: none;
+        }
+        
+        table.tt tbody tr:hover {
+            background: rgba(255, 255, 255, .025);
+        }
+        
+        table.tt tbody tr.is-second {
+            background: rgba(245, 166, 35, .04);
+        }
+        
+        table.tt tbody td {
+            padding: 10px 14px;
+            font-size: .82rem;
+            vertical-align: middle;
+            border-right: 1px solid var(--border);
+        }
+        
+        table.tt tbody td:last-child {
+            border-right: none;
+        }
+        
+        .day-cell {
+            display: flex;
+            align-items: flex-start;
+            gap: 9px;
+        }
+        
+        .day-dot {
+            width: 9px;
+            height: 9px;
+            border-radius: 50%;
+            margin-top: 4px;
+            flex-shrink: 0;
+        }
+        
+        .day-name {
+            font-weight: 700;
+            color: var(--text);
+            font-size: .84rem;
+        }
+        
+        .day-date {
+            font-size: .68rem;
+            color: var(--text2);
+            font-family: 'DM Mono', monospace;
+            margin-top: 2px;
+        }
+        
+        .multi-tag {
+            display: inline-block;
+            background: rgba(245, 166, 35, .15);
+            color: var(--accent);
+            font-size: .6rem;
+            font-weight: 700;
+            padding: 1px 6px;
+            border-radius: 4px;
+            margin-left: 6px;
+            vertical-align: middle;
+        }
+        
+        .additional-tag {
+            font-size: .7rem;
+            color: var(--accent);
+            font-style: italic;
+            padding-left: 18px;
+        }
+        
+        .subj-cell {
+            display: flex;
+            align-items: center;
+            gap: 9px;
+        }
+        
+        .subj-icon {
+            width: 30px;
+            height: 30px;
+            border-radius: 7px;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 15px;
+        }
+        
+        .subj-name {
+            font-weight: 600;
+            color: var(--text);
+        }
+        
+        .time-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: .72rem;
+            font-weight: 600;
+            white-space: nowrap;
+            font-family: 'DM Mono', monospace;
+        }
+        
+        .tp-am {
+            background: rgba(59, 130, 246, .15);
+            color: #93c5fd;
+            border: 1px solid rgba(59, 130, 246, .2);
+        }
+        
+        .tp-mid {
+            background: rgba(245, 166, 35, .15);
+            color: var(--accent);
+            border: 1px solid rgba(245, 166, 35, .2);
+        }
+        
+        .tp-pm {
+            background: rgba(248, 113, 113, .15);
+            color: #fca5a5;
+            border: 1px solid rgba(248, 113, 113, .2);
+        }
+        
+        .dur-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: .72rem;
+            background: rgba(52, 211, 153, .12);
+            color: var(--green);
+            border: 1px solid rgba(52, 211, 153, .2);
+        }
+        
+        .sess-pill {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 3px 8px;
+            border-radius: 6px;
+            font-size: .65rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: .4px;
+        }
+        
+        .sp-morning {
+            background: rgba(59, 130, 246, .12);
+            color: #93c5fd;
+        }
+        
+        .sp-midday {
+            background: rgba(245, 166, 35, .12);
+            color: var(--accent);
+        }
+        
+        .sp-afternoon {
+            background: rgba(248, 113, 113, .12);
+            color: #fca5a5;
+        }
+        
+        .notes-section {
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            overflow: hidden;
+            margin-top: 4px;
+        }
+        
+        .notes-section-header {
+            background: linear-gradient(135deg, var(--navy), #0f2a55);
+            padding: 12px 20px;
+            display: flex;
+            align-items: center;
+            gap: 9px;
+        }
+        
+        .notes-section-header h4 {
+            font-size: .9rem;
+            font-weight: 700;
+            color: #fff;
+        }
+        
+        .notes-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            background: var(--bg2);
+        }
+        
+        .note-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            padding: 13px 18px;
+            border-bottom: 1px solid var(--border);
+            border-right: 1px solid var(--border);
+            transition: background .12s;
+        }
+        
+        .note-item:nth-child(2n) {
+            border-right: none;
+        }
+        
+        .note-item:nth-last-child(-n+2) {
+            border-bottom: none;
+        }
+        
+        .note-item:hover {
+            background: var(--bg3);
+        }
+        
+        .note-check {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--navy);
+            border: 2px solid var(--accent);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            margin-top: 1px;
+        }
+        
+        .note-text {
+            font-size: .8rem;
+            color: var(--text);
+            line-height: 1.5;
+        }
+        
+        .notes-motivational {
+            background: linear-gradient(135deg, rgba(245, 166, 35, .08), rgba(59, 130, 246, .06));
+            padding: 16px 20px;
+            text-align: center;
+            border-top: 1px solid var(--border);
+        }
+        
+        .mot-main {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--accent);
+            margin-bottom: 4px;
+        }
+        
+        .mot-sub {
+            font-size: .75rem;
+            color: var(--text2);
+        }
+        
+        .notes-footer-tagline {
+            text-align: center;
+            padding: 10px 20px 14px;
+            font-size: .7rem;
+            color: var(--text3);
+            font-style: italic;
+            border-top: 1px solid var(--border);
+            background: var(--bg2);
+        }
+        
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 9999;
+            background: var(--navy);
+            color: #fff;
+            padding: 10px 18px;
+            border-radius: 9px;
+            font-size: .82rem;
+            font-weight: 500;
+            border: 1px solid rgba(255, 255, 255, .1);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, .4);
+            opacity: 0;
+            transform: translateY(8px);
+            transition: opacity .3s, transform .3s;
+            pointer-events: none;
+        }
+        
+        .toast.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        .no-print {}
+        
+        @media print {
+            .sidebar,
+            .no-print {
+                display: none!important;
+            }
+            .main-content {
+                margin-left: 0!important;
+                padding: 0!important;
+                max-width: 100%!important;
+            }
+            body {
+                background: #fff!important;
+                color: #000!important;
+            }
+        }
+        
+        @media(max-width:640px) {
+            .sidebar {
+                display: none;
+            }
+            .main-content {
+                margin-left: 0;
+                padding: 16px;
+                max-width: 100%;
+            }
+            .form-row,
+            .form-row-3 {
+                grid-template-columns: 1fr;
+            }
+            .notes-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="dashboard">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h2>SchoolDuty</h2>
+                <p>Exam Timetable</p>
+            </div>
+            <div class="sidebar-user">
+                <div class="name" id="sb-name">Loading…</div>
+                <span class="role-badge" id="sb-role">—</span>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="#" onclick="showSection('view',this)" class="active">📅 View Timetable</a>
+                <a href="#" onclick="showSection('exams',this)" id="nav-exams" style="display:none">📋 Manage Exams</a>
+                <a href="#" onclick="showSection('notes',this)" id="nav-notes" style="display:none">📝 Edit Notes</a>
+                <a href="#" onclick="showSection('settings',this)" id="nav-settings" style="display:none">⚙️ Settings</a>
+                <a href="#" id="back-link">← Dashboard</a>
+            </nav>
+            <div class="sidebar-footer"><button onclick="logout()">Sign Out</button></div>
+        </aside>
+
+        <main class="main-content">
+            <div class="page-header">
+                <h1>📋 Exam Timetable</h1>
+                <p id="page-sub">School examination schedule — view and download as PDF</p>
+            </div>
+            <div id="msg-box"></div>
+
+            <!-- VIEW -->
+            <div id="section-view">
+                <div class="toolbar no-print">
+                    <div class="toolbar-left">
+                        <div class="tabs" id="week-tabs" style="margin:0"></div>
+                    </div>
+                    <div class="toolbar-right">
+                        <button class="btn btn-secondary btn-sm" onclick="loadFromServer()">↻ Refresh</button>
+                        <button class="btn btn-success btn-sm" id="btn-add-exam" onclick="showSection('exams')" style="display:none">＋ Add Exam</button>
+                        <button class="btn btn-navy" onclick="downloadPDF()">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7,10 12,15 17,10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Download PDF
+          </button>
+                    </div>
+                </div>
+
+                <div id="printable-area">
+                    <div class="tt-school-banner">
+                        <div style="font-size:.68rem;color:rgba(255,255,255,.4);letter-spacing:2px;text-transform:uppercase;margin-bottom:8px">School Examination Schedule</div>
+                        <input class="tt-school-name-input" id="school-name-input" value="School Name" readonly/>
+                        <input class="tt-term-name-input" id="term-name-input" value="Mid-Year Examinations 2024" readonly/>
+                        <div class="tt-sub-tagline">— Mipangilio Bora, Mafanikio Bora —</div>
+                        <div class="tt-info-pills">
+                            <div class="tt-info-pill">📅 <span id="info-weeks">—</span> Weeks</div>
+                            <div class="tt-info-pill">📝 <span id="info-exams">—</span> Exams</div>
+                        </div>
+                    </div>
+                    <div id="weeks-area"></div>
+                    <div class="notes-section" id="notes-section">
+                        <div class="notes-section-header">
+                            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="flex-shrink:0"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+                            <h4>Maelekezo Muhimu — Important Notes for Students</h4>
+                        </div>
+                        <div class="notes-grid" id="notes-grid"></div>
+                        <div class="notes-motivational">
+                            <div class="mot-main" id="mot-main">Jitayarishe Vizuri, Faulu kwa Uhakika!</div>
+                            <div class="mot-sub" id="mot-sub">Kazi Iendelee — Mafanikio ni Lako!</div>
+                        </div>
+                        <div class="notes-footer-tagline">★ Mipangilio mzuri ni hatua ya kwanza menuju mafanikio. ★</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- MANAGE EXAMS -->
+            <div id="section-exams" style="display:none">
+                <div class="card">
+                    <div class="card-header">
+                        <div>
+                            <h3>Add New Exam</h3>
+                            <p>Morning sessions auto-sort to top</p>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <form onsubmit="addExam(event)">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Week Name — type it</label>
+                                    <input type="text" id="exam-week-input" placeholder="e.g., First Week, Wiki ya Kwanza" required/>
+                                    <div id="week-suggestions" style="margin-top:6px;display:flex;gap:6px;flex-wrap:wrap"></div>
+                                </div>
+                                <div class="form-group">
+                                    <label>Subject / Paper *</label>
+                                    <input type="text" id="exam-subject" placeholder="e.g., Mathematics, Kiswahili" required/>
+                                </div>
+                            </div>
+                            <div class="form-row-3">
+                                <div class="form-group"><label>Exam Date *</label><input type="date" id="exam-date" required/></div>
+                                <div class="form-group"><label>Start Time *</label><input type="time" id="exam-start" value="08:00" required/></div>
+                                <div class="form-group"><label>Duration (minutes)</label><input type="number" id="exam-duration" value="180" min="30" max="480" /></div>
+                            </div>
+                            <div class="form-group"><label>Venue / Room (optional)</label><input type="text" id="exam-venue" placeholder="e.g., Main Hall, Room 12" /></div>
+                            <div style="display:flex;gap:10px;flex-wrap:wrap">
+                                <button type="submit" class="btn btn-primary">Add Exam</button>
+                                <button type="button" class="btn btn-secondary" onclick="showSection('view')">← Back to View</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h3>All Weeks &amp; Exams</h3>
+                        <p>Manage weeks and remove exams</p>
+                    </div>
+                    <div class="card-body">
+                        <div style="background:rgba(245,166,35,.06);border:1px solid rgba(245,166,35,.15);border-radius:10px;padding:14px 16px;margin-bottom:16px">
+                            <div style="font-size:.8rem;font-weight:600;color:var(--accent);margin-bottom:10px">➕ Add New Week</div>
+                            <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end">
+                                <div style="flex:1;min-width:150px"><label>Week Name</label><input type="text" id="new-week-label" placeholder="e.g., First Week, Wiki ya Kwanza" /></div>
+                                <div style="flex:1;min-width:130px"><label>Start Date</label><input type="date" id="new-week-start" /></div>
+                                <div style="flex:1;min-width:130px"><label>End Date</label><input type="date" id="new-week-end" /></div>
+                                <button class="btn btn-success btn-sm" onclick="addWeek()" style="align-self:flex-end;padding:9px 16px">Add Week</button>
+                            </div>
+                        </div>
+                        <div id="week-manage-list"></div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h3>All Scheduled Exams</h3>
+                    </div>
+                    <div id="exam-list-manage">
+                        <div class="loading">Loading…</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- NOTES -->
+            <div id="section-notes" style="display:none">
+                <div class="card" style="max-width:680px">
+                    <div class="card-header">
+                        <h3>Edit Student Notes</h3>
+                        <p>Appear at the bottom of the printed timetable</p>
+                    </div>
+                    <div class="card-body">
+                        <div class="form-group"><label>Notes — one per line</label><textarea id="notes-textarea" rows="8"></textarea></div>
+                        <div class="form-row">
+                            <div class="form-group"><label>Motivational Headline</label><input type="text" id="mot-headline" /></div>
+                            <div class="form-group"><label>Sub-tagline</label><input type="text" id="mot-subline" /></div>
+                        </div>
+                        <button class="btn btn-primary" onclick="saveNotes()">Save Notes</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SETTINGS -->
+            <div id="section-settings" style="display:none">
+                <div class="card" style="max-width:540px">
+                    <div class="card-header">
+                        <h3>Timetable Settings</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="form-group"><label>School Name</label><input type="text" id="setting-school" /></div>
+                        <div class="form-group"><label>Term / Exam Session Title</label><input type="text" id="setting-term" /></div>
+                        <button class="btn btn-primary" onclick="saveSettings()">Save Settings</button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div id="toast-el" class="toast"></div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+    <script>
+        const BASE = '/school-duty-system/backend';
+        const token = localStorage.getItem('sds_token');
+        let currentUser = null;
+        try {
+            currentUser = JSON.parse(localStorage.getItem('sds_user'));
+        } catch {}
+        if (!currentUser || !token) window.location.href = 'login.html';
+
+        document.getElementById('sb-name').textContent = (currentUser && currentUser.full_name) || '—';
+        document.getElementById('sb-role').textContent = (currentUser && currentUser.role) || '—';
+
+        var canManage = (currentUser && currentUser.role === 'academician');
+        if (canManage) {
+            document.getElementById('nav-exams').style.display = '';
+            document.getElementById('nav-notes').style.display = '';
+            document.getElementById('nav-settings').style.display = '';
+            document.getElementById('btn-add-exam').style.display = '';
+            document.getElementById('school-name-input').removeAttribute('readonly');
+            document.getElementById('term-name-input').removeAttribute('readonly');
+        }
+        var backLinks = {
+            admin: 'admin.html',
+            academician: 'academician.html',
+            teacher: 'teacher.html',
+            student: 'student.html'
+        };
+        var userRole = (currentUser && currentUser.role) || '';
+        document.getElementById('back-link').href = backLinks[userRole] || 'login.html';
+
+        function logout() {
+            localStorage.removeItem('sds_token');
+            localStorage.removeItem('sds_user');
+            window.location.href = 'login.html';
+        }
+
+        // ── STATE — empty by default, loaded from server ──
+        let ttData = {
+            schoolName: 'School Name',
+            termName: 'Mid-Year Examinations 2024',
+            weeks: [],
+            notes: ['Fika kwenye kituo cha mtihani mapema.', 'Kuja na vifaa vyote vinavyohitajika.', 'Zingatia maelekezo yote ya wasimamizi.', 'Usichelewe na ratiba yako ya kujifunza.', 'Simu za mkononi hairuhusiwi ukumbini.', 'Jibu maswali yote kwa makini na uvumilivu.'],
+            motMain: 'Jitayarishe Vizuri, Faulu kwa Uhakika!',
+            motSub: 'Kazi Iendelee — Mafanikio ni Lako!'
+        };
+        let activeWeekFilter = 'all';
+
+        // helpers
+        const ICONS = {
+            kiswahili: '📖',
+            hesabu: '🧮',
+            matematik: '🧮',
+            sayansi: '🔬',
+            fizikia: '⚛️',
+            kemia: '⚗️',
+            baiolojia: '🧬',
+            geografia: '🌍',
+            historia: '🏛️',
+            teknolojia: '💻',
+            english: '🔤',
+            kisasa: '🔤',
+            dini: '🕌',
+            michezo: '🏃',
+            sanaa: '🎨',
+            fasihi: '📚',
+            default: '📝'
+        };
+
+        function getIcon(s) {
+            const k = s.toLowerCase();
+            for (const [kw, v] of Object.entries(ICONS))
+                if (k.includes(kw)) return v;
+            return ICONS.default;
+        }
+
+        function getDayName(d) {
+            const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+            const day = new Date(d).getDay();
+            return days[day === 0 ? 6 : day - 1];
+        }
+
+        function timeBand(t) {
+            const h = parseInt(t.split(':')[0], 10);
+            if (h < 12) return 'am';
+            if (h < 15) return 'mid';
+            return 'pm';
+        }
+
+        function fmtTime(t) {
+            const [h, m] = t.split(':').map(Number);
+            const ap = h >= 12 ? 'PM' : 'AM';
+            return `${h%12||12}:${String(m).padStart(2,'0')} ${ap}`;
+        }
+
+        function addMins(t, mins) {
+            let [h, m] = t.split(':').map(Number);
+            m += mins;
+            h += Math.floor(m / 60);
+            m %= 60;
+            return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
+        }
+
+        function fmtDate(d) {
+            return new Date(d).toLocaleDateString('en-GB', {
+                day: 'numeric',
+                month: 'short',
+                year: 'numeric'
+            });
+        }
+
+        function dateRange(s, e) {
+            return `${fmtDate(s)} – ${fmtDate(e)}`;
+        }
+
+        function uid() {
+            return 'x' + Math.random().toString(36).slice(2, 9);
+        }
+
+        function escH(s) {
+            return String(s || '').replace(/[&<>"']/g, m => ({
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#39;'
+            }[m]));
+        }
+
+        function toast(msg) {
+            const el = document.getElementById('toast-el');
+            el.textContent = msg;
+            el.className = 'toast show';
+            setTimeout(() => el.className = 'toast', 2800);
+        }
+
+        function showAlert(id, msg, type = 'error') {
+            const el = document.getElementById(id);
+            if (!el) return;
+            el.innerHTML = `<div class="alert alert-${type}">${msg}</div>`;
+            setTimeout(() => {
+                if (el.firstChild) el.innerHTML = '';
+            }, 5000);
+        }
+
+        // ── SERVER SYNC ──
+        async function saveTimetableToServer() {
+            if (!canManage) return;
+            try {
+                const res = await fetch(BASE + '/timetable/save_exam.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + token
+                    },
+                    body: JSON.stringify(ttData)
+                });
+                const d = await res.json();
+                if (!res.ok) throw new Error(d.error || 'Save failed');
+            } catch (e) {
+                console.warn('Save failed:', e.message);
+            }
+        }
+
+        async function loadFromServer() {
+            document.getElementById('weeks-area').innerHTML = '<div class="loading">Loading timetable…</div>';
+            try {
+                const res = await fetch(BASE + '/timetable/get_exam.php', {
+                    headers: {
+                        'Authorization': 'Bearer ' + token
+                    }
+                });
+                if (res.ok) {
+                    const d = await res.json();
+                    if (d && d.weeks) {
+                        // Merge server data, keep defaults for missing fields
+                        ttData = {...ttData,
+                            ...d
+                        };
+                        // Ensure weeks is always an array
+                        if (!Array.isArray(ttData.weeks)) ttData.weeks = [];
+                    }
+                }
+            } catch (e) {
+                console.warn('Load failed, using empty state');
+            }
+            renderAll();
+        }
+
+        // ── RENDER ──
+        function renderAll() {
+            syncInputs();
+            renderWeekTabs();
+            renderWeeksArea();
+            renderNotesSection();
+            updateInfoPills();
+        }
+
+        function syncInputs() {
+            document.getElementById('school-name-input').value = ttData.schoolName;
+            document.getElementById('term-name-input').value = ttData.termName;
+            document.getElementById('mot-main').textContent = ttData.motMain;
+            document.getElementById('mot-sub').textContent = ttData.motSub;
+        }
+        document.getElementById('school-name-input').addEventListener('input', function() {
+            ttData.schoolName = this.value;
+        });
+        document.getElementById('term-name-input').addEventListener('input', function() {
+            ttData.termName = this.value;
+        });
+
+        function updateInfoPills() {
+            const total = ttData.weeks.reduce((a, w) => a + w.exams.length, 0);
+            document.getElementById('info-weeks').textContent = ttData.weeks.length;
+            document.getElementById('info-exams').textContent = total;
+        }
+
+        function renderWeekTabs() {
+            const tabs = document.getElementById('week-tabs');
+            let html = `<button class="tab-btn ${activeWeekFilter==='all'?'active':''}" onclick="filterWeek('all',this)">All Weeks</button>`;
+            ttData.weeks.forEach(w => {
+                html += `<button class="tab-btn ${activeWeekFilter===w.id?'active':''}" onclick="filterWeek('${w.id}',this)">${escH(w.label)}</button>`;
+            });
+            tabs.innerHTML = html;
+        }
+
+        function filterWeek(wid, btn) {
+            activeWeekFilter = wid;
+            document.querySelectorAll('#week-tabs .tab-btn').forEach(b => b.classList.remove('active'));
+            if (btn) btn.classList.add('active');
+            renderWeeksArea();
+        }
+
+        function renderWeeksArea() {
+            const area = document.getElementById('weeks-area');
+            const weeks = activeWeekFilter === 'all' ? ttData.weeks : ttData.weeks.filter(w => w.id === activeWeekFilter);
+            if (!weeks.length) {
+                area.innerHTML = '<div class="empty-state">No weeks yet.' + (canManage ? ' Use Manage Exams to add weeks and exams.' : '') + '</div>';
+                return;
+            }
+            area.innerHTML = weeks.map(w => renderWeekBlock(w)).join('');
+        }
+
+        function renderWeekBlock(week) {
+            const sorted = [...week.exams].sort((a, b) => a.date.localeCompare(b.date) || a.startTime.localeCompare(b.startTime));
+            const byDate = {};
+            sorted.forEach(e => {
+                if (!byDate[e.date]) byDate[e.date] = [];
+                byDate[e.date].push(e);
+            });
+            const colors = ['#3b82f6', '#34d399', '#a78bfa', '#f5a623', '#f87171', '#60d394'];
+            let rows = '';
+            let di = 0;
+            Object.entries(byDate).forEach(([date, exams]) => {
+                        const isMulti = exams.length > 1;
+                        exams.forEach((exam, ei) => {
+                                    const band = timeBand(exam.startTime);
+                                    const end = addMins(exam.startTime, exam.durationMins);
+                                    const tpClass = band === 'am' ? 'tp-am' : band === 'mid' ? 'tp-mid' : 'tp-pm';
+                                    const spClass = band === 'am' ? 'sp-morning' : band === 'mid' ? 'sp-midday' : 'sp-afternoon';
+                                    const sessLabel = band === 'am' ? 'Morning' : band === 'mid' ? 'Midday' : 'Afternoon';
+                                    const isSecond = ei > 0;
+                                    rows += `<tr class="${isSecond?'is-second':''}">
+        <td>${!isSecond
+          ?`<div class="day-cell"><div class="day-dot" style="background:${colors[di%colors.length]}"></div><div><div class="day-name">${getDayName(date)}${isMulti&&ei===0?`<span class="multi-tag">${exams.length} exams</span>`:''}</div><div class="day-date">${fmtDate(date)}</div></div></div>`
+          :`<div class="additional-tag">+ also this day</div>`}</td>
+        <td><div class="subj-cell"><div class="subj-icon" style="background:${isSecond?'rgba(245,166,35,.12)':'rgba(59,130,246,.12)'}">${getIcon(exam.subject)}</div><span class="subj-name">${escH(exam.subject)}</span></div></td>
+        <td><span class="time-pill ${tpClass}">${fmtTime(exam.startTime)} – ${fmtTime(end)}</span></td>
+        <td><span class="dur-pill">${exam.durationMins>=60?Math.floor(exam.durationMins/60)+'h'+(exam.durationMins%60?' '+exam.durationMins%60+'m':''):exam.durationMins+'m'}</span></td>
+        <td><span class="sess-pill ${spClass}">${sessLabel}</span></td>
+        <td style="font-size:.72rem;color:var(--text2)">${escH(exam.venue||'—')}</td>
+        ${canManage?`<td><button onclick="deleteExamFromState('${week.id}','${exam.id}')" style="background:none;border:none;cursor:pointer;color:var(--text3);font-size:16px;padding:2px 6px;border-radius:5px" title="Remove">✕</button></td>`:''}
+      </tr>`;
+      if(!isSecond)di++;
+    });
+  });
+  const cols=`<th>Day</th><th>Subject / Paper</th><th>Time</th><th>Duration</th><th>Session</th><th>Venue</th>${canManage?'<th></th>':''}`;
+  return`<div class="week-block">
+    <div class="week-header-bar">
+      <h4>${escH(week.label)}</h4>
+      <div style="display:flex;align-items:center;gap:10px">
+        <span class="week-dates">${week.start&&week.end?dateRange(week.start,week.end):'No dates set'}</span>
+        <span style="background:rgba(255,255,255,.1);padding:3px 9px;border-radius:12px;font-size:.68rem;color:rgba(255,255,255,.7)">${week.exams.length} exam${week.exams.length!==1?'s':''}</span>
+      </div>
+    </div>
+    <div class="week-table-wrap">
+      <table class="tt"><thead><tr>${cols}</tr></thead>
+      <tbody>${rows||'<tr><td colspan="7" class="empty-state">No exams in this week</td></tr>'}</tbody></table>
+    </div>
+  </div>`;
+}
+
+function renderNotesSection(){
+  const grid=document.getElementById('notes-grid');
+  grid.innerHTML=ttData.notes.map(n=>`<div class="note-item"><div class="note-check"><svg viewBox="0 0 12 12" fill="none" stroke="#f5a623" stroke-width="2.5" width="10" height="10"><polyline points="1,6 4.5,9.5 11,2.5"/></svg></div><span class="note-text">${escH(n)}</span></div>`).join('');
+  document.getElementById('mot-main').textContent=ttData.motMain;
+  document.getElementById('mot-sub').textContent=ttData.motSub;
+}
+
+function showSection(name,el){
+  ['view','exams','notes','settings'].forEach(s=>{document.getElementById('section-'+s).style.display=s===name?'':'none';});
+  document.querySelectorAll('.sidebar-nav a').forEach(a=>a.classList.remove('active'));
+  if(el)el.classList.add('active');
+  if(name==='exams'){renderExamManageList();renderWeekManageList();renderWeekSuggestions();}
+  if(name==='notes'){document.getElementById('notes-textarea').value=ttData.notes.join('\n');document.getElementById('mot-headline').value=ttData.motMain;document.getElementById('mot-subline').value=ttData.motSub;}
+  if(name==='settings'){document.getElementById('setting-school').value=ttData.schoolName;document.getElementById('setting-term').value=ttData.termName;}
+}
+
+function renderWeekSuggestions(){
+  const el=document.getElementById('week-suggestions');
+  if(!el)return;
+  el.innerHTML=ttData.weeks.map(w=>`<button type="button" onclick="document.getElementById('exam-week-input').value='${escH(w.label)}'" style="padding:3px 10px;border-radius:14px;border:1px solid var(--border);background:var(--bg3);color:var(--accent);font-size:.7rem;cursor:pointer;font-family:'DM Sans',sans-serif">${escH(w.label)}</button>`).join('');
+}
+
+// ── ADD EXAM ──
+function addExam(e){
+  e.preventDefault();
+  const weekLabel=document.getElementById('exam-week-input').value.trim();
+  const subject=document.getElementById('exam-subject').value.trim();
+  const date=document.getElementById('exam-date').value;
+  const start=document.getElementById('exam-start').value;
+  const duration=parseInt(document.getElementById('exam-duration').value,10)||180;
+  const venue=document.getElementById('exam-venue').value.trim();
+  if(!weekLabel||!subject||!date){showAlert('msg-box','Please fill in week name, subject and date.');return;}
+  let week=ttData.weeks.find(w=>w.label.toLowerCase()===weekLabel.toLowerCase());
+  if(!week){
+    week={id:uid(),label:weekLabel,start:'',end:'',exams:[]};
+    ttData.weeks.push(week);
+    toast('New week created: '+weekLabel);
+  }
+  week.exams.push({id:uid(),date,subject,startTime:start,durationMins:duration,venue});
+  e.target.reset();
+  document.getElementById('exam-start').value='08:00';
+  document.getElementById('exam-duration').value='180';
+  renderAll();renderExamManageList();renderWeekManageList();renderWeekSuggestions();
+  saveTimetableToServer();
+  showAlert('msg-box','✅ '+subject+' added to "'+weekLabel+'"!','success');
+}
+
+function deleteExamFromState(weekId,examId){
+  const week=ttData.weeks.find(w=>w.id===weekId);
+  if(!week)return;
+  if(!confirm('Remove this exam?'))return;
+  week.exams=week.exams.filter(e=>e.id!==examId);
+  renderAll();renderExamManageList();
+  saveTimetableToServer();
+}
+
+function renderExamManageList(){
+  const el=document.getElementById('exam-list-manage');
+  if(!el)return;
+  const all=[];
+  ttData.weeks.forEach(w=>w.exams.forEach(e=>all.push({...e,weekLabel:w.label,weekId:w.id})));
+  all.sort((a,b)=>a.date.localeCompare(b.date)||a.startTime.localeCompare(b.startTime));
+  if(!all.length){el.innerHTML='<div class="empty-state">No exams added yet</div>';return;}
+  el.innerHTML=all.map(e=>{
+    const end=addMins(e.startTime,e.durationMins);
+    return`<div style="display:flex;align-items:center;gap:12px;padding:11px 18px;border-bottom:1px solid var(--border);font-size:.82rem">
+      <div style="flex:1"><strong style="color:var(--text)">${escH(e.subject)}</strong>
+      <span style="color:var(--text3);margin-left:8px;font-size:.72rem">${escH(e.weekLabel)}</span><br/>
+      <span style="color:var(--text2);font-family:'DM Mono',monospace;font-size:.7rem">${fmtDate(e.date)} · ${fmtTime(e.startTime)}–${fmtTime(end)} · ${e.durationMins}min${e.venue?' · '+e.venue:''}</span></div>
+      <button onclick="deleteExamFromState('${e.weekId}','${e.id}')" class="btn btn-danger btn-sm">Remove</button>
+    </div>`;
+  }).join('');
+}
+
+// ── WEEKS MANAGEMENT ──
+function addWeek(){
+  const label=document.getElementById('new-week-label').value.trim();
+  const start=document.getElementById('new-week-start').value;
+  const end=document.getElementById('new-week-end').value;
+  if(!label){showAlert('msg-box','Week name is required.');return;}
+  if(ttData.weeks.find(w=>w.label.toLowerCase()===label.toLowerCase())){showAlert('msg-box','A week with this name already exists.');return;}
+  ttData.weeks.push({id:uid(),label,start:start||'',end:end||'',exams:[]});
+  document.getElementById('new-week-label').value='';
+  document.getElementById('new-week-start').value='';
+  document.getElementById('new-week-end').value='';
+  renderAll();renderWeekManageList();renderWeekSuggestions();
+  saveTimetableToServer();
+  toast('Week added: '+label);
+}
+
+function deleteWeek(wid){
+  const w=ttData.weeks.find(x=>x.id===wid);
+  if(!confirm('Delete "'+(w?w.label:'')+'" and all its exams?'))return;
+  ttData.weeks=ttData.weeks.filter(x=>x.id!==wid);
+  renderAll();renderWeekManageList();renderWeekSuggestions();
+  saveTimetableToServer();
+}
+
+function renderWeekManageList(){
+  const el=document.getElementById('week-manage-list');
+  if(!el)return;
+  if(!ttData.weeks.length){el.innerHTML='<div class="empty-state">No weeks yet</div>';return;}
+  el.innerHTML=ttData.weeks.map(w=>`
+    <div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border)">
+      <div style="flex:1;font-size:.84rem">
+        <strong style="color:var(--text)">${escH(w.label)}</strong>
+        <span style="color:var(--text2);margin-left:8px;font-size:.72rem;font-family:'DM Mono',monospace">${w.start&&w.end?dateRange(w.start,w.end):'No dates'}</span>
+        <span style="color:var(--text3);margin-left:8px;font-size:.7rem">(${w.exams.length} exams)</span>
+      </div>
+      <button onclick="deleteWeek('${w.id}')" class="btn btn-danger btn-sm">Delete</button>
+    </div>`).join('');
+}
+
+function saveNotes(){
+  ttData.notes=document.getElementById('notes-textarea').value.split('\n').map(l=>l.trim()).filter(Boolean);
+  ttData.motMain=document.getElementById('mot-headline').value.trim()||ttData.motMain;
+  ttData.motSub=document.getElementById('mot-subline').value.trim()||ttData.motSub;
+  renderNotesSection();
+  saveTimetableToServer();
+  toast('Notes saved!');showAlert('msg-box','✅ Notes updated','success');
+}
+
+function saveSettings(){
+  ttData.schoolName=document.getElementById('setting-school').value.trim()||ttData.schoolName;
+  ttData.termName=document.getElementById('setting-term').value.trim()||ttData.termName;
+  syncInputs();
+  saveTimetableToServer();
+  toast('Settings saved!');showAlert('msg-box','✅ Settings saved','success');
+}
+
+// ── PDF ──
+function downloadPDF(){
+  if(typeof window.jspdf==='undefined'){toast('PDF library loading…');return;}
+  const{jsPDF}=window.jspdf;
+  const doc=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
+  const PW=210,PH=297,ML=12,MR=12;const CW=PW-ML-MR;
+  doc.setFillColor(26,58,107);doc.rect(0,0,PW,32,'F');
+  doc.setFillColor(245,166,35,30);doc.circle(PW-20,5,18,'F');
+  doc.setFillColor(59,130,246,20);doc.circle(15,28,14,'F');
+  doc.setTextColor(255,255,255);doc.setFont('helvetica','bold');doc.setFontSize(16);
+  doc.text(ttData.termName.toUpperCase(),PW/2,11,{align:'center'});
+  doc.setFontSize(11);doc.text(ttData.schoolName,PW/2,19,{align:'center'});
+  doc.setFont('helvetica','italic');doc.setFontSize(8);doc.setTextColor(200,215,240);
+  doc.text('— Mipangilio Bora, Mafanikio Bora —',PW/2,26,{align:'center'});
+  doc.setFillColor(45,84,148);doc.rect(0,32,PW,8,'F');
+  const totalExams=ttData.weeks.reduce((a,w)=>a+w.exams.length,0);
+  doc.setFont('helvetica','normal');doc.setFontSize(8);doc.setTextColor(200,220,255);
+  var firstDate=(ttData.weeks[0]&&ttData.weeks[0].start)||'',lastDate=(ttData.weeks[ttData.weeks.length-1]&&ttData.weeks[ttData.weeks.length-1].end)||'';
+  doc.text(ttData.weeks.length+' Weeks · '+totalExams+' Exams'+(firstDate&&lastDate?' · '+fmtDate(firstDate)+' – '+fmtDate(lastDate):''),PW/2,37.5,{align:'center'});
+  let yPos=44;
+  ttData.weeks.forEach(week=>{
+    const sorted=[...week.exams].sort((a,b)=>a.date.localeCompare(b.date)||a.startTime.localeCompare(b.startTime));
+    if(!sorted.length)return;
+    if(yPos>PH-55){doc.addPage();yPos=14;}
+    doc.setFillColor(45,84,148);doc.rect(ML,yPos,CW,8,'F');
+    doc.setTextColor(255,255,255);doc.setFont('helvetica','bold');doc.setFontSize(9);
+    const weekHeader=week.start&&week.end?week.label.toUpperCase()+'   •   '+dateRange(week.start,week.end):week.label.toUpperCase();
+    doc.text(weekHeader,PW/2,yPos+5.5,{align:'center'});
+    yPos+=9;
+    const byDate={};
+    sorted.forEach(e=>{if(!byDate[e.date])byDate[e.date]=[];byDate[e.date].push(e);});
+    const tableRows=[];
+    Object.entries(byDate).forEach(([date,exams])=>{
+      exams.forEach((exam,ei)=>{
+        const end=addMins(exam.startTime,exam.durationMins);
+        const dur=exam.durationMins>=60?Math.floor(exam.durationMins/60)+'h'+(exam.durationMins%60?' '+exam.durationMins%60+'m':''):exam.durationMins+'m';
+        const band=timeBand(exam.startTime);
+        const sessLabel=band==='am'?'Asubuhi':band==='mid'?'Mchana':'Alasiri';
+        const fmtD=new Date(date).toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short',year:'numeric'});
+        tableRows.push([ei===0?getDayName(date):'↳',ei===0?fmtD:'',exam.subject,fmtTime(exam.startTime)+' – '+fmtTime(end),dur,sessLabel,exam.venue||'—']);
+      });
+    });
+    doc.autoTable({
+      startY:yPos,head:[['Siku','Tarehe','Somo / Karatasi','Muda','Muda','Kipindi','Chumba']],body:tableRows,
+      margin:{left:ML,right:MR},
+      headStyles:{fillColor:[26,58,107],textColor:[255,255,255],fontSize:7.5,fontStyle:'bold',halign:'center',cellPadding:3},
+      bodyStyles:{fontSize:8.5,textColor:[20,20,30],cellPadding:{top:4,bottom:4,left:3,right:3}},
+      alternateRowStyles:{fillColor:[240,245,255]},
+      columnStyles:{0:{fontStyle:'bold',cellWidth:18},1:{cellWidth:32},2:{cellWidth:52},3:{cellWidth:30,halign:'center',fontStyle:'bold'},4:{cellWidth:16,halign:'center'},5:{cellWidth:18,halign:'center'},6:{cellWidth:20,halign:'center'}},
+      didParseCell(data){
+        if(data.section==='body'){
+          const sv=data.row.raw[5];
+          if(data.column.index===5){
+            if(sv==='Asubuhi'){data.cell.styles.fillColor=[230,241,251];data.cell.styles.textColor=[24,95,165];}
+            if(sv==='Mchana'){data.cell.styles.fillColor=[250,238,218];data.cell.styles.textColor=[133,79,11];}
+            if(sv==='Alasiri'){data.cell.styles.fillColor=[250,236,231];data.cell.styles.textColor=[153,60,29];}
+            data.cell.styles.fontStyle='bold';
+          }
+          if(data.row.raw[0]==='↳'){data.cell.styles.fillColor=[255,248,225];data.cell.styles.textColor=[180,100,0];}
+        }
+      },theme:'grid'
+    });
+    yPos=doc.lastAutoTable.finalY+7;
+  });
+  if(yPos>PH-70){doc.addPage();yPos=14;}
+  doc.setFillColor(26,58,107);doc.rect(ML,yPos,CW,8,'F');
+  doc.setTextColor(255,255,255);doc.setFont('helvetica','bold');doc.setFontSize(9);
+  doc.text('MAELEKEZO MUHIMU — IMPORTANT NOTES',PW/2,yPos+5.5,{align:'center'});
+  yPos+=10;
+  const noteRows=Math.ceil(ttData.notes.length/2);
+  const nBoxH=noteRows*11+8;
+  doc.setFillColor(248,250,255);doc.setDrawColor(180,200,230);doc.rect(ML,yPos,CW,nBoxH,'FD');
+  ttData.notes.forEach((note,i)=>{
+    const col=ML+(i%2)*(CW/2)+5;const row=yPos+7+Math.floor(i/2)*11;
+    doc.setFillColor(26,58,107);doc.circle(col+2.5,row-2,2.5,'F');
+    doc.setTextColor(255,255,255);doc.setFontSize(7);doc.setFont('helvetica','bold');doc.text('✓',col+1.1,row-0.5);
+    doc.setTextColor(20,20,30);doc.setFontSize(8.5);doc.setFont('helvetica','normal');doc.text(note,col+8,row);
+  });
+  yPos+=nBoxH+8;
+  if(yPos<PH-25){
+    doc.setFillColor(245,166,35,40);doc.setDrawColor(245,166,35);doc.rect(ML,yPos,CW,18,'FD');
+    doc.setTextColor(90,40,0);doc.setFont('helvetica','bold');doc.setFontSize(11);
+    doc.text(ttData.motMain,PW/2,yPos+8,{align:'center'});
+    doc.setFont('helvetica','italic');doc.setFontSize(8.5);
+    doc.text(ttData.motSub,PW/2,yPos+14,{align:'center'});
+  }
+  const pageCount=doc.internal.getNumberOfPages();
+  for(let i=1;i<=pageCount;i++){
+    doc.setPage(i);doc.setFillColor(26,58,107);doc.rect(0,PH-11,PW,11,'F');
+    doc.setTextColor(180,200,240);doc.setFont('helvetica','italic');doc.setFontSize(7.5);
+    doc.text('★ Mipangilio mzuri ni hatua ya kwanza menuju mafanikio. ★',ML,PH-4.5);
+    doc.setFont('helvetica','normal');doc.setTextColor(200,215,255);
+    doc.text('Ukurasa '+i+' / '+pageCount,PW-MR,PH-4.5,{align:'right'});
+  }
+  const fname=(ttData.termName||'exam-timetable').replace(/\s+/g,'-').replace(/[^a-zA-Z0-9-]/g,'').toLowerCase();
+  doc.save(fname+'.pdf');
+  toast('✅ PDF downloaded!');
+}
+
+// ── INIT — load from server on page open ──
+loadFromServer();
+    </script>
+</body>
+
+</html>

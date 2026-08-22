@@ -1,0 +1,914 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Teacher Dashboard — SchoolDuty</title>
+    <link rel="stylesheet" href="assets/css/style.css" />
+    <style>
+        .my-week-card {
+            background: var(--bg3);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 16px 18px;
+            margin-bottom: 10px;
+            transition: border-color .2s;
+        }
+        
+        .my-week-card:hover {
+            border-color: var(--accent);
+        }
+        
+        .my-week-card.is-mine {
+            border-left: 3px solid var(--accent);
+        }
+        
+        .my-week-card.is-swapped {
+            border-left: 3px solid var(--blue);
+        }
+        
+        .my-week-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        
+        .my-week-num {
+            font-family: 'DM Mono', monospace;
+            font-size: .72rem;
+            color: var(--text3);
+            font-weight: 600;
+        }
+        
+        .my-week-range {
+            font-size: .78rem;
+            color: var(--text2);
+        }
+        
+        .my-week-title {
+            font-size: .9rem;
+            font-weight: 600;
+            color: var(--text);
+        }
+        
+        .my-week-bottom {
+            margin-top: 8px;
+            font-size: .75rem;
+            color: var(--text2);
+        }
+        
+        .term-filter {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+        }
+        
+        .filter-btn {
+            padding: 6px 14px;
+            border-radius: 7px;
+            border: 1px solid var(--border);
+            background: var(--bg3);
+            color: var(--text2);
+            font-size: .75rem;
+            cursor: pointer;
+            transition: all .15s;
+        }
+        
+        .filter-btn.active {
+            background: rgba(245, 166, 35, .12);
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+        
+        .swap-incoming {
+            background: rgba(96, 165, 250, .08);
+            border: 1px solid rgba(96, 165, 250, .2);
+        }
+        
+        .transferred-from {
+            font-size: .68rem;
+            color: var(--blue);
+            font-style: italic;
+        }
+        
+        .roster-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+        }
+        
+        .roster-section-label {
+            font-size: .72rem;
+            font-weight: 700;
+            color: var(--accent);
+            text-transform: uppercase;
+            letter-spacing: .5px;
+            margin-bottom: 6px;
+            padding-bottom: 4px;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        .roster-num {
+            text-align: center;
+        }
+        
+        .roster-total {
+            background: rgba(245, 166, 35, .08);
+            border-radius: 6px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="dashboard">
+        <aside class="sidebar sidebar-teacher">
+            <div class="sidebar-header">
+                <h2>SchoolDuty</h2>
+                <p>Teacher Portal</p>
+            </div>
+            <div class="sidebar-user">
+                <div class="name" id="sb-name"></div><span class="role-badge">Teacher</span></div>
+            <nav class="sidebar-nav">
+                <a href="#" class="active" onclick="showTab('overview',this)">📊 Overview</a>
+                <a href="#" onclick="showTab('term-duties',this)">🗓️ Term Duties</a>
+                <a href="#" onclick="showTab('my-duties',this)">📋 My Duties</a>
+                <a href="#" onclick="showTab('swap',this)">🔄 Swap Requests</a>
+                <a href="#" onclick="showTab('roster',this)">📖 Roster Book</a>
+                <a href="#" onclick="showTab('special',this)">⭐ Special Tasks</a>
+                <a href="#" onclick="showTab('post-task',this)">📝 Post Task</a>
+                <a href="#" onclick="showTab('my-tasks',this)">📋 My Posted Tasks</a>
+                <a href="#" onclick="showTab('submissions',this)">📬 Submissions</a>
+                <a href="#" onclick="showTab('positions',this)">🏅 My Positions</a>
+                <a href="timetable.html">📋 Exam Timetable ↗</a>
+                <a href="class-timetable.html">🏫 Class Timetables ↗</a>
+                <a href="#" onclick="showTab('profile',this)">👤 My Profile</a>
+            </nav>
+            <div class="sidebar-footer"><button onclick="logout()">Sign Out</button></div>
+        </aside>
+
+        <main class="main-content">
+            <div class="page-header">
+                <h1>Teacher Dashboard</h1>
+                <p id="welcome-p"></p>
+            </div>
+            <div id="msg-box"></div>
+
+            <div id="tab-overview">
+                <div class="stats-grid">
+                    <div class="stat-card border-yellow">
+                        <div class="stat-num" id="s-my-weeks">—</div>
+                        <div class="stat-label">My Duty Weeks</div>
+                    </div>
+                    <div class="stat-card border-blue">
+                        <div class="stat-num" id="s-swaps">—</div>
+                        <div class="stat-label">Swap Requests</div>
+                    </div>
+                    <div class="stat-card border-green">
+                        <div class="stat-num" id="s-special">—</div>
+                        <div class="stat-label">Special Tasks</div>
+                    </div>
+                    <div class="stat-card border-purple">
+                        <div class="stat-num" id="s-subs">—</div>
+                        <div class="stat-label">Submissions</div>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-header">
+                        <h3>🗓️ My Upcoming Duty Weeks</h3>
+                        <p>Next 3 duty weeks assigned to you</p>
+                    </div>
+                    <div class="card-body" id="upcoming-duties"></div>
+                </div>
+            </div>
+
+            <div id="tab-term-duties" style="display:none">
+                <div class="card">
+                    <div class="card-header">
+                        <div>
+                            <h3>🗓️ Full Term Duty Schedule</h3>
+                            <p>All weeks — your assigned weeks highlighted</p>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="term-filter">
+                            <button class="filter-btn active" onclick="filterTermDuties('all',this)">All Weeks</button>
+                            <button class="filter-btn" onclick="filterTermDuties('mine',this)">My Weeks</button>
+                            <button class="filter-btn" onclick="filterTermDuties('swapped',this)">Transferred To Me</button>
+                        </div>
+                        <div id="term-duties-list">
+                            <div class="loading">Loading…</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="tab-my-duties" style="display:none">
+                <div class="card">
+                    <div class="card-header">
+                        <div>
+                            <h3>📋 My Assigned Duties</h3>
+                            <p>Individual duties assigned to you</p>
+                        </div>
+                        <button class="btn btn-secondary btn-sm" onclick="loadMyDuties()">↻ Refresh</button>
+                    </div>
+                    <div class="item-list" id="my-duties-list">
+                        <div class="loading">Loading…</div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="tab-swap" style="display:none">
+                <div class="card form-card" style="max-width:560px;margin-bottom:20px">
+                    <div class="card-header">
+                        <h3>Request a Duty Swap</h3>
+                        <p>Ask academician to reassign your duty week</p>
+                    </div>
+                    <div class="card-body">
+                        <form onsubmit="requestSwap(event)">
+                            <div class="form-group">
+                                <label>My Duty Week to Swap</label>
+                                <select id="swap-my-week" required><option value="">Select your duty week…</option></select>
+                            </div>
+                            <div class="form-group">
+                                <label>Reason for Swap</label>
+                                <textarea id="swap-reason" rows="3" placeholder="Explain why you need this swap…" required></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Send Swap Request to Academician</button>
+                        </form>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-header">
+                        <h3>Swap Request History</h3>
+                        <p>Requests you have sent</p>
+                    </div>
+                    <div class="item-list" id="swaps-list"></div>
+                </div>
+            </div>
+
+            <div id="tab-roster" style="display:none">
+                <div class="card" style="max-width:680px">
+                    <div class="card-header">
+                        <h3>📖 Daily Roster Entry</h3>
+                        <p>Record daily class attendance</p>
+                    </div>
+                    <div class="card-body">
+                        <form onsubmit="submitRoster(event)">
+                            <div class="form-row">
+                                <div class="form-group"><label>Date</label><input type="date" id="roster-date" /></div>
+                                <div class="form-group"><label>Class Name *</label><input type="text" id="roster-class" placeholder="e.g., Form 4A" required/></div>
+                            </div>
+
+                            <div style="margin-bottom:14px">
+                                <div class="roster-section-label">Registered</div>
+                                <div class="roster-grid">
+                                    <div class="form-group roster-num"><label>Boys</label><input type="number" id="reg-boys" value="0" min="0" /></div>
+                                    <div class="form-group roster-num"><label>Girls</label><input type="number" id="reg-girls" value="0" min="0" /></div>
+                                    <div class="form-group roster-num roster-total"><label>Total</label><input type="number" id="reg-total" value="0" readonly style="background:var(--bg3);color:var(--accent);font-weight:700" /></div>
+                                </div>
+                            </div>
+
+                            <div style="margin-bottom:14px">
+                                <div class="roster-section-label">Present</div>
+                                <div class="roster-grid">
+                                    <div class="form-group roster-num"><label>Boys</label><input type="number" id="pres-boys" value="0" min="0" /></div>
+                                    <div class="form-group roster-num"><label>Girls</label><input type="number" id="pres-girls" value="0" min="0" /></div>
+                                    <div class="form-group roster-num roster-total"><label>Total</label><input type="number" id="pres-total" value="0" readonly style="background:var(--bg3);color:var(--green);font-weight:700" /></div>
+                                </div>
+                            </div>
+
+                            <div style="margin-bottom:14px">
+                                <div class="roster-section-label">Absentees</div>
+                                <div class="roster-grid">
+                                    <div class="form-group roster-num"><label>Boys</label><input type="number" id="abs-boys" value="0" min="0" /></div>
+                                    <div class="form-group roster-num"><label>Girls</label><input type="number" id="abs-girls" value="0" min="0" /></div>
+                                    <div class="form-group roster-num roster-total"><label>Total</label><input type="number" id="abs-total" value="0" readonly style="background:var(--bg3);color:var(--red);font-weight:700" /></div>
+                                </div>
+                            </div>
+
+                            <div style="margin-bottom:14px">
+                                <div class="roster-section-label">Permitted</div>
+                                <div class="roster-grid">
+                                    <div class="form-group roster-num"><label>Boys</label><input type="number" id="perm-boys" value="0" min="0" /></div>
+                                    <div class="form-group roster-num"><label>Girls</label><input type="number" id="perm-girls" value="0" min="0" /></div>
+                                    <div class="form-group roster-num roster-total"><label>Total</label><input type="number" id="perm-total" value="0" readonly style="background:var(--bg3);color:var(--blue);font-weight:700" /></div>
+                                </div>
+                            </div>
+
+                            <div style="margin-bottom:14px">
+                                <div class="roster-section-label">Sick</div>
+                                <div class="roster-grid">
+                                    <div class="form-group roster-num"><label>Boys</label><input type="number" id="sick-boys" value="0" min="0" /></div>
+                                    <div class="form-group roster-num"><label>Girls</label><input type="number" id="sick-girls" value="0" min="0" /></div>
+                                    <div class="form-group roster-num roster-total"><label>Total</label><input type="number" id="sick-total" value="0" readonly style="background:var(--bg3);color:var(--accent);font-weight:700" /></div>
+                                </div>
+                            </div>
+
+                            <div class="form-group"><label>Remarks</label><textarea id="roster-remarks" rows="2"></textarea></div>
+                            <button type="submit" class="btn btn-primary">Submit Roster</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <div id="tab-special" style="display:none">
+                <div class="card">
+                    <div class="card-header">
+                        <h3>My Special Tasks</h3>
+                    </div>
+                    <div class="item-list" id="special-list"></div>
+                </div>
+            </div>
+
+            <div id="tab-post-task" style="display:none">
+                <div class="card form-card" style="max-width:560px">
+                    <div class="card-header">
+                        <div>
+                            <h3>📢 Post Task for All Students</h3>
+                            <p>Visible to all registered students</p>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <form onsubmit="postTask(event)">
+                            <div class="form-group"><label>Task Title *</label><input type="text" id="task-title" required/></div>
+                            <div class="form-group"><label>Subject</label><input type="text" id="task-subject" /></div>
+                            <div class="form-group"><label>Description</label><textarea id="task-desc" rows="4" placeholder="Describe the task…"></textarea></div>
+                            <div class="form-group"><label>Due Date</label><input type="date" id="task-due" /></div>
+                            <button type="submit" class="btn btn-primary">Post Task for All Students</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <div id="tab-my-tasks" style="display:none">
+                <div class="card">
+                    <div class="card-header">
+                        <div>
+                            <h3>📋 My Posted Tasks</h3>
+                            <p>Tasks you have posted for students</p>
+                        </div>
+                        <button class="btn btn-secondary btn-sm" onclick="loadMyPostedTasks()">↻ Refresh</button>
+                    </div>
+                    <div class="item-list" id="my-posted-tasks-list">
+                        <div class="loading">Loading…</div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="tab-submissions" style="display:none">
+                <div class="card">
+                    <div class="card-header">
+                        <h3>Student Submissions</h3>
+                        <p>View, download, and grade student work</p>
+                    </div>
+                    <div class="item-list" id="submissions-list"></div>
+                </div>
+            </div>
+
+            <div id="tab-positions" style="display:none">
+                <div class="card">
+                    <div class="card-header">
+                        <div>
+                            <h3>🏅 My Positions</h3>
+                            <p>Positions assigned to you by admin</p>
+                        </div>
+                        <button class="btn btn-secondary btn-sm" onclick="loadMyPositions()">↻ Refresh</button>
+                    </div>
+                    <div id="my-positions-list">
+                        <div class="loading">Loading…</div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="tab-profile" style="display:none">
+                <div class="card form-card" style="max-width:500px">
+                    <div class="card-header">
+                        <h3>My Profile</h3>
+                    </div>
+                    <div class="card-body">
+                        <div style="margin-bottom:1.5rem;padding:1rem;background:rgba(96,165,250,.08);border-radius:10px">
+                            <p><strong>Name:</strong> <span id="profile-name"></span></p>
+                            <p><strong>Role:</strong> Teacher</p>
+                            <p><strong>Email:</strong> <span id="profile-email"></span></p>
+                        </div>
+                        <form onsubmit="changePassword(event)">
+                            <div class="form-group"><label>Current Password</label><input type="password" id="current-password" required/></div>
+                            <div class="form-group"><label>New Password (min 6)</label><input type="password" id="new-password" required minlength="6" /></div>
+                            <div class="form-group"><label>Confirm Password</label><input type="password" id="confirm-password" required/></div>
+                            <button type="submit" class="btn btn-primary">Change Password</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div id="gradeModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>✅ Grade Submission</h3><button class="modal-close" onclick="closeModal('gradeModal')">&times;</button></div>
+            <div class="modal-body">
+                <div id="grade-info" style="background:var(--bg3);padding:12px;border-radius:8px;margin-bottom:14px;font-size:.82rem;color:var(--text2)"></div>
+                <div class="form-group"><label>Grade</label><input type="text" id="grade-value" placeholder="e.g., A, B+, 85%, Pass" /></div>
+                <div class="form-group"><label>Feedback Comment</label><textarea id="grade-comment" rows="3" placeholder="Optional feedback…"></textarea></div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('gradeModal')">Cancel</button>
+                <button class="btn btn-success" style="width:auto" onclick="saveGrade()">Save Grade</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="assets/js/api.js"></script>
+    <script>
+        var user = requireAuth('teacher');
+        document.getElementById('sb-name').textContent = user.full_name;
+        document.getElementById('welcome-p').textContent = 'Welcome, ' + user.full_name;
+
+        var termDuties = [],
+            allTermDuties = [],
+            mySwaps = [],
+            specialTasks = [],
+            submissions = [],
+            gradeSubmissionId = null;
+
+        function showTab(name, el) {
+            var tabs = ['overview', 'term-duties', 'my-duties', 'swap', 'roster', 'special', 'post-task', 'my-tasks', 'submissions', 'positions', 'profile'];
+            tabs.forEach(function(t) {
+                var x = document.getElementById('tab-' + t);
+                if (x) x.style.display = t === name ? '' : 'none';
+            });
+            document.querySelectorAll('.sidebar-nav a').forEach(function(a) {
+                a.classList.remove('active');
+            });
+            if (el) el.classList.add('active');
+            if (name === 'overview') loadOverview();
+            if (name === 'term-duties') loadTermDuties();
+            if (name === 'my-duties') loadMyDuties();
+            if (name === 'swap') {
+                loadTermDuties();
+                loadSwaps();
+            }
+            if (name === 'special') loadSpecial();
+            if (name === 'my-tasks') loadMyPostedTasks();
+            if (name === 'submissions') loadSubmissions();
+            if (name === 'positions') loadMyPositions();
+            if (name === 'profile') showProfile();
+        }
+
+        async function loadOverview() {
+            try {
+                var res = await Promise.all([
+                    apiCall('/term_duties/get_mine.php').catch(function() {
+                        return [];
+                    }),
+                    apiCall('/swap/get.php').catch(function() {
+                        return [];
+                    }),
+                    apiCall('/special_tasks/get_mine.php').catch(function() {
+                        return [];
+                    }),
+                    apiCall('/tasks/submissions.php').catch(function() {
+                        return [];
+                    })
+                ]);
+                termDuties = res[0];
+                document.getElementById('s-my-weeks').textContent = res[0].length;
+                document.getElementById('s-swaps').textContent = res[1].length;
+                document.getElementById('s-special').textContent = res[2].length;
+                document.getElementById('s-subs').textContent = res[3].length;
+                renderUpcoming(res[0]);
+            } catch (e) {
+                showAlert('msg-box', e.message);
+            }
+        }
+
+        function renderUpcoming(duties) {
+            var el = document.getElementById('upcoming-duties');
+            var today = new Date();
+            var upcoming = duties.filter(function(d) {
+                    return new Date(d.week_end) >= today;
+                })
+                .sort(function(a, b) {
+                    return new Date(a.week_start) - new Date(b.week_start);
+                }).slice(0, 3);
+            if (!upcoming.length) {
+                el.innerHTML = '<div class="empty-state">No upcoming duty weeks assigned</div>';
+                return;
+            }
+            el.innerHTML = upcoming.map(function(w) {
+                return '<div style="display:flex;align-items:center;gap:12px;padding:12px;background:var(--bg3);border-radius:9px;margin-bottom:8px;border-left:3px solid var(--accent)">' +
+                    '<div style="font-family:\'DM Mono\',monospace;font-size:.7rem;color:var(--text3)">Week ' + w.week_number + '</div>' +
+                    '<div style="flex:1"><div style="font-weight:600;color:var(--text);font-size:.88rem">' + escapeHtml(w.title) + '</div>' +
+                    '<div style="font-size:.72rem;color:var(--text2)">' + fmtDate(w.week_start) + ' → ' + fmtDate(w.week_end) + '</div></div>' +
+                    badge(w.status) + '</div>';
+            }).join('');
+        }
+
+        async function loadTermDuties() {
+            try {
+                allTermDuties = await apiCall('/term_duties/get_all.php').catch(function() {
+                    return [];
+                });
+                termDuties = await apiCall('/term_duties/get_mine.php').catch(function() {
+                    return [];
+                });
+                renderTermDuties('all');
+                var sel = document.getElementById('swap-my-week');
+                if (sel) {
+                    sel.innerHTML = '<option value="">Select your duty week…</option>' +
+                        termDuties.map(function(w) {
+                            return '<option value="' + w.id + '">Week ' + w.week_number + ': ' + fmtDate(w.week_start) + ' — ' + fmtDate(w.week_end) + '</option>';
+                        }).join('');
+                }
+            } catch (e) {
+                showAlert('msg-box', e.message);
+            }
+        }
+
+        function filterTermDuties(filter, btn) {
+            document.querySelectorAll('.filter-btn').forEach(function(b) {
+                b.classList.remove('active');
+            });
+            if (btn) btn.classList.add('active');
+            renderTermDuties(filter);
+        }
+
+        function renderTermDuties(filter) {
+            var el = document.getElementById('term-duties-list');
+            if (!el) return;
+            var data = allTermDuties;
+            if (filter === 'mine') data = allTermDuties.filter(function(w) {
+                return w.assigned_to == user.id && !(w.swapped == 1 || w.swapped === true);
+            });
+            if (filter === 'swapped') data = allTermDuties.filter(function(w) {
+                return w.assigned_to == user.id && (w.swapped == 1 || w.swapped === true);
+            });
+            if (!data.length) {
+                el.innerHTML = '<div class="empty-state">No duty weeks found for this filter</div>';
+                return;
+            }
+            el.innerHTML = data.map(function(w) {
+                var isMe = w.assigned_to == user.id;
+                var wasSwapped = w.swapped == 1 || w.swapped === true;
+                return '<div class="my-week-card ' + (isMe ? (wasSwapped ? 'is-swapped' : 'is-mine') : '') + '">' +
+                    '<div class="my-week-top">' +
+                    '<div><div class="my-week-num">Week ' + w.week_number + '</div><div class="my-week-title">' + escapeHtml(w.title) + '</div></div>' +
+                    '<div class="my-week-range">' + fmtDate(w.week_start) + ' → ' + fmtDate(w.week_end) + '</div>' +
+                    '<div style="display:flex;gap:6px;align-items:center">' +
+                    (isMe ? '<span class="badge badge-active">Your Duty</span>' : '<span style="color:var(--text3);font-size:.78rem">' + escapeHtml(w.teacher_name) + '</span>') +
+                    (wasSwapped ? '<span class="transferred-from">🔄 Transferred</span>' : '') +
+                    badge(w.status) +
+                    '</div>' +
+                    '</div>' +
+                    (w.swap_note ? '<div class="my-week-bottom" style="color:var(--accent)">📝 Note: ' + escapeHtml(w.swap_note) + '</div>' : '') +
+                    '</div>';
+            }).join('');
+        }
+
+        async function loadMyDuties() {
+            var el = document.getElementById('my-duties-list');
+            el.innerHTML = '<div class="loading">Loading…</div>';
+            try {
+                var data = await apiCall('/duties/get_mine.php');
+                if (!data.length) {
+                    el.innerHTML = '<div class="empty-state">No individual duties assigned to you yet</div>';
+                    return;
+                }
+                el.innerHTML = data.map(function(d) {
+                    return '<div class="item"><div class="item-info">' +
+                        '<div class="item-title">' + escapeHtml(d.title) + '</div>' +
+                        '<div class="item-meta">📅 ' + fmtDate(d.duty_date) + (d.duty_time ? ' · ⏰ ' + escapeHtml(d.duty_time) : '') + (d.location ? ' · 📍 ' + escapeHtml(d.location) : '') + ' · By: ' + escapeHtml(d.assigned_by_name) + '</div>' +
+                        (d.description ? '<div class="item-meta" style="margin-top:4px">' + escapeHtml(d.description) + '</div>' : '') +
+                        '</div><div class="item-actions">' +
+                        '<select class="status-select" onchange="updateMyDutyStatus(' + d.id + ',this.value)">' +
+                        '<option ' + (d.status === 'pending' ? 'selected' : '') + ' value="pending">Pending</option>' +
+                        '<option ' + (d.status === 'ongoing' ? 'selected' : '') + ' value="ongoing">Ongoing</option>' +
+                        '<option ' + (d.status === 'completed' ? 'selected' : '') + ' value="completed">Completed</option>' +
+                        '</select>' + badge(d.status) +
+                        '</div></div>';
+                }).join('');
+            } catch (e) {
+                el.innerHTML = '<div class="empty-state">Error: ' + escapeHtml(e.message) + '</div>';
+            }
+        }
+
+        async function updateMyDutyStatus(id, status) {
+            try {
+                await apiCall('/duties/update_status.php', 'POST', {
+                    id: id,
+                    status: status
+                });
+                showAlert('msg-box', 'Status updated!', 'success');
+            } catch (e) {
+                showAlert('msg-box', e.message);
+            }
+        }
+
+        async function loadSwaps() {
+            try {
+                mySwaps = await apiCall('/swap/get.php');
+                var el = document.getElementById('swaps-list');
+                if (!mySwaps.length) {
+                    el.innerHTML = '<div class="empty-state">No swap requests yet</div>';
+                    return;
+                }
+                el.innerHTML = mySwaps.map(function(s) {
+                    return '<div class="item ' + (s.target_teacher_id == user.id ? 'swap-incoming' : '') + '">' +
+                        '<div class="item-info">' +
+                        '<div class="item-title">' + (s.requesting_teacher_id == user.id ? '📤 Sent' : '📥 Received') + ': ' + escapeHtml(s.requesting_teacher) + ' → ' + (escapeHtml(s.target_teacher) || 'Academician') + '</div>' +
+                        '<div class="item-meta">Date: ' + fmtDate(s.duty_date) + ' · Reason: ' + escapeHtml(s.reason || '—') + '</div>' +
+                        (s.response_comment ? '<div class="item-meta" style="color:var(--accent)">Response: ' + escapeHtml(s.response_comment) + '</div>' : '') +
+                        '</div><div class="item-actions"><span class="badge badge-' + s.status + '">' + s.status + '</span></div>' +
+                        '</div>';
+                }).join('');
+            } catch (e) {
+                showAlert('msg-box', e.message);
+            }
+        }
+
+        async function requestSwap(e) {
+            e.preventDefault();
+            var week_id = document.getElementById('swap-my-week').value;
+            var reason = document.getElementById('swap-reason').value;
+            var week = termDuties.find(function(w) {
+                return w.id == week_id;
+            });
+            if (!week) {
+                showAlert('msg-box', 'Please select your duty week');
+                return;
+            }
+            try {
+                await apiCall('/swap/request.php', 'POST', {
+                    target_teacher_id: 0,
+                    duty_date: week.week_start,
+                    duty_week_id: week_id,
+                    reason: reason
+                });
+                showAlert('msg-box', 'Swap request sent to Academician!', 'success');
+                e.target.reset();
+                await loadSwaps();
+            } catch (err) {
+                showAlert('msg-box', err.message);
+            }
+        }
+
+        function setupRosterTotals() {
+            function wire(boyId, girlId, totalId) {
+                function update() {
+                    var b = parseInt(document.getElementById(boyId).value) || 0;
+                    var g = parseInt(document.getElementById(girlId).value) || 0;
+                    document.getElementById(totalId).value = b + g;
+                }
+                document.getElementById(boyId).addEventListener('input', update);
+                document.getElementById(girlId).addEventListener('input', update);
+            }
+            wire('reg-boys', 'reg-girls', 'reg-total');
+            wire('pres-boys', 'pres-girls', 'pres-total');
+            wire('abs-boys', 'abs-girls', 'abs-total');
+            wire('perm-boys', 'perm-girls', 'perm-total');
+            wire('sick-boys', 'sick-girls', 'sick-total');
+        }
+
+        async function submitRoster(e) {
+            e.preventDefault();
+            var data = {
+                date: document.getElementById('roster-date').value || new Date().toISOString().split('T')[0],
+                class_name: document.getElementById('roster-class').value,
+                reg_boys: document.getElementById('reg-boys').value,
+                reg_girls: document.getElementById('reg-girls').value,
+                pres_boys: document.getElementById('pres-boys').value,
+                pres_girls: document.getElementById('pres-girls').value,
+                abs_boys: document.getElementById('abs-boys').value,
+                abs_girls: document.getElementById('abs-girls').value,
+                perm_boys: document.getElementById('perm-boys').value,
+                perm_girls: document.getElementById('perm-girls').value,
+                sick_boys: document.getElementById('sick-boys').value,
+                sick_girls: document.getElementById('sick-girls').value,
+                remarks: document.getElementById('roster-remarks').value
+            };
+            try {
+                await apiCall('/roster/submit.php', 'POST', data);
+                showAlert('msg-box', 'Roster submitted successfully!', 'success');
+                e.target.reset();
+                document.getElementById('roster-date').value = new Date().toISOString().split('T')[0];
+                ['reg-total', 'pres-total', 'abs-total', 'perm-total', 'sick-total'].forEach(function(id) {
+                    document.getElementById(id).value = '0';
+                });
+            } catch (err) {
+                showAlert('msg-box', err.message);
+            }
+        }
+
+        async function loadSpecial() {
+            try {
+                specialTasks = await apiCall('/special_tasks/get_mine.php');
+                var el = document.getElementById('special-list');
+                if (!specialTasks.length) {
+                    el.innerHTML = '<div class="empty-state">No special tasks</div>';
+                    return;
+                }
+                el.innerHTML = specialTasks.map(function(t) {
+                    return '<div class="item"><div class="item-info">' +
+                        '<div class="item-title">' + escapeHtml(t.title) + ' ' + badge(t.priority) + '</div>' +
+                        '<div class="item-meta">By: ' + escapeHtml(t.assigned_by_name) + ' · Due: ' + fmtDate(t.due_date) + '</div>' +
+                        '</div><div class="item-actions">' +
+                        '<select class="status-select" onchange="updateSpecialStatus(' + t.id + ',this.value)">' +
+                        '<option ' + (t.status === 'pending' ? 'selected' : '') + ' value="pending">Pending</option>' +
+                        '<option ' + (t.status === 'in_progress' ? 'selected' : '') + ' value="in_progress">In Progress</option>' +
+                        '<option ' + (t.status === 'completed' ? 'selected' : '') + ' value="completed">Completed</option>' +
+                        '</select>' + badge(t.status) + '</div></div>';
+                }).join('');
+            } catch (e) {
+                showAlert('msg-box', e.message);
+            }
+        }
+
+        async function updateSpecialStatus(id, status) {
+            await apiCall('/special_tasks/update_status.php', 'POST', {
+                id: id,
+                status: status
+            });
+            await loadSpecial();
+        }
+
+        async function postTask(e) {
+            e.preventDefault();
+            var data = {
+                title: document.getElementById('task-title').value,
+                subject: document.getElementById('task-subject').value,
+                description: document.getElementById('task-desc').value,
+                due_date: document.getElementById('task-due').value
+            };
+            try {
+                await apiCall('/tasks/create.php', 'POST', data);
+                showAlert('msg-box', 'Task posted! All students can see it.', 'success');
+                e.target.reset();
+            } catch (err) {
+                showAlert('msg-box', err.message);
+            }
+        }
+
+        async function loadMyPostedTasks() {
+            var el = document.getElementById('my-posted-tasks-list');
+            el.innerHTML = '<div class="loading">Loading…</div>';
+            try {
+                var data = await apiCall('/tasks/get_mine_posted.php');
+                if (!data.length) {
+                    el.innerHTML = '<div class="empty-state">You have not posted any tasks yet</div>';
+                    return;
+                }
+                el.innerHTML = data.map(function(t) {
+                    return '<div class="item"><div class="item-info">' +
+                        '<div class="item-title">' + escapeHtml(t.title) + '</div>' +
+                        '<div class="item-meta">' + escapeHtml(t.subject || 'General') + ' · Due: ' + fmtDate(t.due_date) + '</div>' +
+                        (t.description ? '<div class="item-meta">' + escapeHtml(t.description.substring(0, 100)) + '…</div>' : '') +
+                        '</div><div class="item-actions">' + badge(t.status) +
+                        '<button class="btn btn-sm btn-danger" onclick="deletePostedTask(' + t.id + ')">Delete</button>' +
+                        '</div></div>';
+                }).join('');
+            } catch (e) {
+                el.innerHTML = '<div class="empty-state">Error: ' + escapeHtml(e.message) + '</div>';
+            }
+        }
+
+        async function deletePostedTask(id) {
+            if (!confirm('Delete this task? Students will no longer see it.')) return;
+            try {
+                await apiCall('/tasks/delete.php', 'POST', {
+                    id: id
+                });
+                await loadMyPostedTasks();
+            } catch (e) {
+                showAlert('msg-box', e.message);
+            }
+        }
+
+        async function loadSubmissions() {
+            try {
+                submissions = await apiCall('/tasks/submissions.php');
+                var el = document.getElementById('submissions-list');
+                if (!submissions.length) {
+                    el.innerHTML = '<div class="empty-state">No student submissions yet</div>';
+                    return;
+                }
+                el.innerHTML = submissions.map(function(s) {
+                    var downloadBtn = s.submission_file ?
+                        '<a class="btn btn-sm btn-secondary" href="/school-duty-system/backend/tasks/download.php?submission_id=' + s.id + '&token=' + encodeURIComponent(localStorage.getItem('sds_token')) + '" target="_blank" style="text-decoration:none;display:inline-flex;align-items:center;gap:4px">📥 Download</a>' :
+                        '';
+                    return '<div class="item submission-item">' +
+                        '<div class="item-info">' +
+                        '<div class="item-title">📝 ' + escapeHtml(s.student_name) + ' (' + (s.reg_number || '—') + ') — ' + escapeHtml(s.task_title) + '</div>' +
+                        '<div class="item-meta">Submitted: ' + fmtDateTime(s.submission_date) + (s.submission_file ? ' · 📎 File attached' : ' · No file') + '</div>' +
+                        (s.submission_text ? '<div class="item-meta">' + escapeHtml(s.submission_text.substring(0, 100)) + '…</div>' : '') +
+                        '</div><div class="item-actions" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">' +
+                        downloadBtn +
+                        (s.grade ?
+                            '<span class="badge badge-graded">Grade: ' + s.grade + '</span>' :
+                            '<button class="btn btn-sm btn-success" onclick="openGrade(' + s.id + ',\'' + escapeHtml(s.student_name) + '\',\'' + escapeHtml(s.task_title) + '\',' + (s.submission_file ? 1 : 0) + ')">Grade</button>') +
+                        '</div></div>';
+                }).join('');
+            } catch (e) {
+                showAlert('msg-box', e.message);
+            }
+        }
+
+        function openGrade(id, student, task, hasFile) {
+            gradeSubmissionId = id;
+            var fileNote = hasFile ?
+                '<br/><a href="/school-duty-system/backend/tasks/download.php?submission_id=' + id + '&token=' + encodeURIComponent(localStorage.getItem('sds_token')) + '" target="_blank" style="color:var(--accent);font-size:.78rem">📥 Download submitted file</a>' :
+                '';
+            document.getElementById('grade-info').innerHTML = '<strong>Student:</strong> ' + escapeHtml(student) + '<br/><strong>Task:</strong> ' + escapeHtml(task) + fileNote;
+            document.getElementById('grade-value').value = '';
+            document.getElementById('grade-comment').value = '';
+            document.getElementById('gradeModal').classList.add('active');
+        }
+
+        async function saveGrade() {
+            var grade = document.getElementById('grade-value').value.trim();
+            var comment = document.getElementById('grade-comment').value.trim();
+            if (!grade) {
+                showAlert('msg-box', 'Please enter a grade');
+                return;
+            }
+            try {
+                await apiCall('/tasks/grade.php', 'POST', {
+                    submission_id: gradeSubmissionId,
+                    grade: grade,
+                    comment: comment
+                });
+                showAlert('msg-box', 'Grade saved!', 'success');
+                closeModal('gradeModal');
+                await loadSubmissions();
+            } catch (err) {
+                showAlert('msg-box', err.message);
+            }
+        }
+
+        function showProfile() {
+            document.getElementById('profile-name').textContent = user.full_name;
+            document.getElementById('profile-email').textContent = user.email || '—';
+        }
+
+        async function changePassword(e) {
+            e.preventDefault();
+            var np = document.getElementById('new-password').value,
+                cp = document.getElementById('confirm-password').value;
+            if (np !== cp) {
+                showAlert('msg-box', 'Passwords do not match');
+                return;
+            }
+            try {
+                await apiCall('/auth/change_password.php', 'POST', {
+                    current_password: document.getElementById('current-password').value,
+                    new_password: np
+                });
+                showAlert('msg-box', 'Password changed!', 'success');
+                e.target.reset();
+            } catch (err) {
+                showAlert('msg-box', err.message);
+            }
+        }
+
+        async function loadMyPositions() {
+            var el = document.getElementById('my-positions-list');
+            el.innerHTML = '<div class="loading">Loading…</div>';
+            try {
+                var data = await apiCall('/teacher_positions/get_mine.php');
+                if (!data.length) {
+                    el.innerHTML = '<div class="empty-state">No positions assigned to you yet</div>';
+                    return;
+                }
+                el.innerHTML = data.map(function(p) {
+                    return '<div class="item">' +
+                        '<div class="item-info">' +
+                        '<div class="item-title" style="color:var(--accent);font-size:.95rem">🏅 ' + escapeHtml(p.position_name) + '</div>' +
+                        '<div class="item-meta">' + escapeHtml(p.position_description || '—') + '</div>' +
+                        '<div class="item-meta">Assigned by: ' + escapeHtml(p.assigned_by_name) + ' · ' + fmtDate(p.assigned_date) + '</div>' +
+                        '</div>' +
+                        '<div class="item-actions">' + badge('active') + '</div>' +
+                        '</div>';
+                }).join('');
+            } catch (e) {
+                el.innerHTML = '<div class="empty-state">Error: ' + escapeHtml(e.message) + '</div>';
+            }
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).classList.remove('active');
+        }
+        window.onclick = function(e) {
+            if (e.target.classList.contains('modal')) e.target.classList.remove('active');
+        };
+
+        document.getElementById('roster-date').value = new Date().toISOString().split('T')[0];
+        setupRosterTotals();
+        loadOverview();
+    </script>
+</body>
+
+</html>
